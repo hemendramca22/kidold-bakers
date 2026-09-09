@@ -6,6 +6,7 @@ import { businessData } from "@/data/business";
 import { getWhatsAppInquiryUrl } from "@/lib/whatsapp";
 import dynamic from "next/dynamic";
 import { PhoneIcon, WhatsAppIcon, MapPinIcon, CakeStudioIcon } from "@/components/icons";
+import { OldBakerChefAvatar } from "@/components/features/baking-buddy/OldBakerChefAvatar";
 
 const DesignCakeWidgetModal = dynamic(
   () =>
@@ -35,7 +36,7 @@ export function MobileActionDock() {
       <aside
         ref={dockRef}
         aria-label="Mobile Quick Contact Dock"
-        className="pointer-events-none fixed bottom-4 left-4 z-40 md:hidden select-none pb-[env(safe-area-inset-bottom,0)]"
+        className="pointer-events-none fixed bottom-4 left-4 z-40 md:hidden select-none pb-[env(safe-area-inset-bottom,0)] w-fit max-w-max"
       >
         {/* Expanded Actions Tray (Slides Up) */}
         {isOpen && (
@@ -44,7 +45,35 @@ export function MobileActionDock() {
             aria-label="Quick Actions"
             className="pointer-events-auto mb-2.5 p-2 rounded-2xl bg-[#FFFDF9]/95 dark:bg-[#1D0F0A]/95 backdrop-blur-md metallic-border flex flex-col gap-2 min-w-[220px] animate-in fade-in slide-in-from-bottom-2 duration-200"
           >
-            {/* Action 1: Design My Cake Studio Widget */}
+            {/* Action 1: Baking Buddy AI Assistant */}
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setIsOpen(false);
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("open-baking-buddy"));
+                }
+              }}
+              className="btn-3d-tactile flex items-center gap-2.5 px-3 py-2 rounded-xl bg-gradient-to-r from-brand-gold/25 via-brand-gold/15 to-brand-crimson/15 dark:from-brand-gold/30 dark:via-brand-gold/20 dark:to-brand-crimson/25 hover:from-brand-gold/35 hover:to-brand-crimson/35 border border-brand-gold/70 text-brand-chocolate dark:text-brand-cream hover:text-brand-crimson dark:hover:text-brand-gold transition-colors shadow-2xs text-xs font-bold text-left"
+            >
+              <div className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center overflow-hidden drop-shadow-xs">
+                <OldBakerChefAvatar size={28} />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="flex items-center gap-1.5">
+                  Baking Buddy
+                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-brand-crimson text-white">
+                    AI
+                  </span>
+                </span>
+                <span className="text-[10px] text-brand-chocolate-light dark:text-brand-cream/60 font-normal">
+                  Ask Chef &amp; Cake Guidance
+                </span>
+              </div>
+            </button>
+
+            {/* Action 2: Design My Cake Studio Widget */}
             <button
               type="button"
               role="menuitem"
@@ -113,7 +142,7 @@ export function MobileActionDock() {
         )}
 
         {/* Main Dock Bar - Strictly 3 Sleek Action Controls */}
-        <div className="pointer-events-auto flex items-center gap-2 p-1.5 rounded-full bg-[#FFFDF9]/95 dark:bg-[#1D0F0A]/95 backdrop-blur-md border border-brand-gold/60 dark:border-brand-gold/50 shadow-[0_8px_24px_rgba(44,24,16,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
+        <div className="pointer-events-auto inline-flex w-fit max-w-max items-center gap-2 p-1.5 rounded-full bg-[#FFFDF9]/95 dark:bg-[#1D0F0A]/95 backdrop-blur-md border border-brand-gold/60 dark:border-brand-gold/50 shadow-[0_8px_24px_rgba(44,24,16,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.5)]">
           {/* 1. Call Button in Dialer Green */}
           <a
             href={`tel:${businessData.phoneRaw}`}

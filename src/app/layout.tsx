@@ -3,6 +3,7 @@ import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { MobileActionDock } from "@/components/layout/MobileActionDock";
+import { BakingBuddyLauncher } from "@/components/features/baking-buddy";
 import { businessData } from "@/data/business";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import "./globals.css";
@@ -110,6 +111,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <MobileActionDock />
+          <BakingBuddyLauncher />
         </ThemeProvider>
       </body>
     </html>
