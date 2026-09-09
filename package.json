@@ -1,0 +1,42 @@
+{
+  "name": "kidold-bakers",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:fresh": "npm run clean:dev && next dev",
+    "clean:dev": "node -e \"const fs=require('fs'); if(fs.existsSync('.next-dev')) fs.rmSync('.next-dev', {recursive: true, force: true}); console.log('Cleaned development cache');\"",
+    "clean": "node -e \"const fs=require('fs'); for (const dir of ['.next', '.next-dev']) if(fs.existsSync(dir)) fs.rmSync(dir, {recursive: true, force: true}); console.log('Cleaned Next.js caches');\"",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "generate:story-docx": "node docs/learning-story/scripts/generate-docx.js",
+    "postinstall": "node scripts/patch-next-dev-chunk-race.mjs"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.114.0",
+    "@react-three/fiber": "^8.17.10",
+    "@types/three": "^0.169.0",
+    "clsx": "^2.1.1",
+    "docx": "^8.5.0",
+    "gsap": "^3.15.0",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.33.5",
+    "tailwind-merge": "^2.5.4",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.15",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.3"
+  }
+}
