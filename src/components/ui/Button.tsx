@@ -35,7 +35,7 @@ export function Button({
 
   const variantStyles = {
     primary:
-      "bg-gradient-to-b from-[#A31D33] via-[#8B1528] to-[#6E0F1E] text-white shadow-crimson-tactile hover:brightness-105 hover:-translate-y-0.5 border border-brand-crimson/40",
+      "bg-[#8B1528] bg-gradient-to-b from-[#A31D33] via-[#8B1528] to-[#6E0F1E] text-white shadow-crimson-tactile hover:brightness-105 hover:-translate-y-0.5 border border-brand-crimson/40 isolate transform-gpu",
     secondary:
       "bg-gradient-to-b from-[#3B2218] via-[#2C1810] to-[#1E100A] text-white shadow-chocolate-tactile hover:brightness-110 hover:-translate-y-0.5 border border-brand-chocolate/40",
     gold:

@@ -501,7 +501,7 @@ export function HeroCakeMesh({ scrollProgress = 0 }: HeroCakeMeshProps) {
     rootGroup.current.rotation.y = THREE.MathUtils.damp(
       rootGroup.current.rotation.y,
       targetRotation,
-      6.0,
+      14.0,
       delta
     );
 

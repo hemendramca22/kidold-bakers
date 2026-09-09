@@ -72,6 +72,7 @@ function CameraRig({
     // calculate exact camera distance Z to guarantee the 3.0-unit turntable platter never clips on left/right.
     let baseZ = 5.6;
     let baseY = 0.82;
+    let targetLookAtY = 0.70;
 
     if (aspect < 0.72) {
       // Mobile / narrow portrait
@@ -79,9 +80,26 @@ function CameraRig({
       const safePlatterWidth = 3.25; // 3.0 unit platter + margins
       baseZ = Math.max(8.8, safePlatterWidth / (2 * tanHalfFov * aspect));
       baseY = 0.94;
+      targetLookAtY = 0.70;
     } else if (deviceProfile === "tablet" || aspect < 1.1) {
       baseZ = 6.6;
       baseY = 0.86;
+      targetLookAtY = 0.70;
+    } else {
+      // Landscape / Desktop / Laptop screens:
+      // On 13-inch and compact laptop displays (viewport height ~550px-740px),
+      // dynamically dolly back camera distance Z and center lookAtY so the bottom turntable stand
+      // never clips against the taskbar or bottom edge, maintaining perfect margins.
+      if (size.height < 740) {
+        const heightDeficit = Math.max(0, 740 - size.height);
+        baseZ = Math.min(6.5, 5.85 + heightDeficit * 0.0035);
+        baseY = 0.76;
+        targetLookAtY = 0.66;
+      } else {
+        baseZ = 5.6;
+        baseY = 0.82;
+        targetLookAtY = 0.70;
+      }
     }
 
     let targetZ = baseZ;
@@ -97,7 +115,7 @@ function CameraRig({
     camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY + mouse.current.y, 0.1);
     camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouse.current.x, 0.1);
 
-    camera.lookAt(0, 0.70, 0);
+    camera.lookAt(0, targetLookAtY, 0);
   });
 
   return null;

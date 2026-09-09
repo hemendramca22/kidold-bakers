@@ -67,13 +67,25 @@ export function HeroSection() {
           start: "top top",
           end: "+=1200",
           pin: true,
-          scrub: 0.8,
+          scrub: 0.2,
           anticipatePin: 1,
           onUpdate: (self) => {
             scrollProgressRef.current = self.progress;
           },
         },
       });
+
+      // Refresh pin calculations after layout mounts and on complete asset load
+      ScrollTrigger.refresh();
+      const rafId = requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
+      const timerId = setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 350);
+
+      const handleWindowLoad = () => ScrollTrigger.refresh();
+      window.addEventListener("load", handleWindowLoad);
 
       // 1. Fade out scroll hint immediately in first 15% of scroll
       tl.to(".hero-scroll-indicator", { opacity: 0, y: 14, duration: 0.15, ease: "power1.out" }, 0);
@@ -97,6 +109,12 @@ export function HeroSection() {
         },
         0.70
       );
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        clearTimeout(timerId);
+        window.removeEventListener("load", handleWindowLoad);
+      };
     }, sectionRef);
 
     return () => ctx.revert();
@@ -106,19 +124,19 @@ export function HeroSection() {
     <section
       ref={sectionRef}
       id="hero"
-      className="relative isolate overflow-hidden -mt-[74px] sm:-mt-[82px] pt-[74px] sm:pt-[82px] w-full h-screen min-h-[640px] max-h-[1080px] bg-[#FFFDF8] dark:bg-[#120905] transition-colors duration-300 flex flex-col justify-between"
+      className="relative isolate overflow-hidden -mt-[74px] sm:-mt-[82px] pt-[74px] sm:pt-[82px] w-full h-screen min-h-[540px] sm:min-h-[580px] lg:min-h-[640px] max-h-[1080px] bg-[#FFFDF8] dark:bg-[#120905] transition-colors duration-300 flex flex-col justify-between [touch-action:pan-y]"
     >
       <HeroAtmosphere />
 
-      {/* Full-viewport 3D Cake Canvas Stage */}
-      <div className="absolute inset-0 z-0 w-full h-full pointer-events-auto">
+      {/* Full-viewport 3D Cake Canvas Stage - pointer-events-none ensures zero touch gesture interference */}
+      <div className="absolute inset-0 z-0 w-full h-full pointer-events-none">
         <HeroProductStage ref={stageRef} scrollProgress={scrollProgressRef} />
       </div>
 
       {/* Floating Skeuomorphic & Glassmorphic Brand & CTA Overlay (Revealed on final turn, centered at lower cake layer) */}
       <div className="relative z-10 w-full h-full pointer-events-none flex flex-col justify-end pb-6 sm:pb-8 lg:pb-10">
         <Container className="w-full flex justify-center items-end">
-          <div className="hero-overlay-card opacity-0 pointer-events-none w-full max-w-xl mx-auto text-center rounded-3xl bg-white/85 dark:bg-[#180C07]/85 backdrop-blur-xl metallic-border metallic-card-rim shadow-[0_20px_50px_rgba(44,24,16,0.18),inset_0_1.5px_0_rgba(255,255,255,0.9)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.75),inset_0_1.5px_0_rgba(245,197,66,0.35)] p-5 sm:p-7 transition-shadow">
+          <div className="hero-overlay-card opacity-0 pointer-events-none w-full max-w-xl mx-auto text-center rounded-3xl bg-white/85 dark:bg-[#180C07]/85 backdrop-blur-xl metallic-border metallic-card-rim shadow-[0_20px_50px_rgba(44,24,16,0.18),inset_0_1.5px_0_rgba(255,255,255,0.9)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.75),inset_0_1.5px_0_rgba(245,197,66,0.35)] p-5 sm:p-7 transition-shadow isolate">
             <div className="hero-eyebrow mb-2.5 inline-flex items-center justify-center gap-2 px-3.5 py-1 rounded-full bg-brand-gold/15 border border-brand-gold/40 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-chocolate-dark dark:metallic-gold-text sm:text-[11px] transition-colors shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse" />
               KidOld Bakers · Jaunpur
@@ -140,8 +158,8 @@ export function HeroSection() {
                     e.preventDefault();
                     smoothScrollTo("custom-cakes");
                   }}
-                  leftIcon={<CakeStudioIcon className="h-4 w-4" />}
-                  className="min-w-[150px] sm:min-w-[165px]"
+                  leftIcon={<CakeStudioIcon className="h-4 w-4 text-brand-gold" />}
+                  className="min-w-[150px] sm:min-w-[165px] bg-[#8B1528] text-white shadow-crimson-tactile isolate"
                 >
                   Design My Cake
                 </Button>

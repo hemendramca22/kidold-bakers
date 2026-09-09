@@ -126,7 +126,7 @@ export function Navbar() {
         >
           <Link
             href="/"
-            className="group flex items-center gap-2.5 rounded-full p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+            className="group flex shrink-0 items-center gap-2.5 rounded-full p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
             aria-label="KidOld Bakers Home"
           >
             <div className="medallion-convex-3d relative h-10 w-10 sm:h-11 sm:w-11 shrink-0 overflow-hidden p-0 transition-transform duration-300 group-hover:scale-105">
@@ -150,7 +150,7 @@ export function Navbar() {
           </Link>
 
           <nav
-            className="hidden items-center gap-1.5 rounded-full border border-brand-gold/30 dark:border-brand-gold/35 bg-white/35 dark:bg-black/40 p-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] xl:flex backdrop-blur-md"
+            className="hidden shrink-0 items-center gap-1 xl:gap-1.5 2xl:gap-2 rounded-full border border-brand-gold/30 dark:border-brand-gold/35 bg-white/35 dark:bg-black/40 p-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] xl:flex backdrop-blur-md"
             aria-label="Main Navigation"
           >
             {navLinks.map((link) => {
@@ -175,7 +175,7 @@ export function Navbar() {
                       setActiveSection(targetId);
                     }
                   }}
-                  className={`btn-3d-tactile rounded-full px-4 py-2 text-xs font-bold tracking-tight transition-all duration-200 xl:text-sm ${
+                  className={`btn-3d-tactile rounded-full h-8 2xl:h-9 px-3 xl:px-3.5 2xl:px-4 text-xs 2xl:text-sm font-bold whitespace-nowrap leading-none inline-flex items-center justify-center tracking-tight transition-all duration-200 ${
                     isActive
                       ? "bg-[#2C1810] text-[#FFFDF7] border border-[#2C1810] shadow-tactile dark:metallic-gold-surface dark:text-[#1A0A04] dark:font-black dark:border-brand-gold/80"
                       : "border border-transparent text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-brand-gold/15 dark:hover:bg-brand-gold/20 hover:text-brand-chocolate-dark dark:hover:text-brand-gold-sparkle"
@@ -188,7 +188,7 @@ export function Navbar() {
             })}
           </nav>
 
-          <div className="hidden items-center gap-2.5 xl:flex">
+          <div className="hidden shrink-0 items-center gap-2 xl:gap-2.5 xl:flex">
             <ThemeToggle />
             <Button
               variant="whatsapp"

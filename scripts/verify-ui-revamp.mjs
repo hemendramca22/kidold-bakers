@@ -397,7 +397,7 @@ assert(review10GlobalsCss.includes(".btn-3d-tactile") && review10GlobalsCss.incl
 
 const review10Navbar = fs.readFileSync(path.join(rootDir, "src/components/layout/Navbar.tsx"), "utf-8");
 assert(review10Navbar.includes("glass-navbar mx-auto flex max-w-7xl items-center justify-between rounded-full"), "Navbar outer glass-navbar container is rounded-full pill shape");
-assert(review10Navbar.includes("btn-3d-tactile rounded-full px-4 py-2"), "Navbar navigation link buttons are rounded-full pill shapes with 3D tactile physics");
+assert(review10Navbar.includes("btn-3d-tactile rounded-full") && review10Navbar.includes("whitespace-nowrap"), "Navbar navigation link buttons are rounded-full pill shapes with 3D tactile physics and whitespace-nowrap symmetry");
 assert(!review10Navbar.includes("dark:shadow-gold-tactile"), "Navbar buttons have single clean border with no double border inset shadows");
 
 const review10LocalBusiness = fs.readFileSync(path.join(rootDir, "src/components/sections/LocalBusinessSection.tsx"), "utf-8");
