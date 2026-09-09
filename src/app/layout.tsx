@@ -98,6 +98,7 @@ export default function RootLayout({
             `,
           }}
         />
+        <link rel="preload" href="/images/brand/kidold-logo-clean.png" as="image" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

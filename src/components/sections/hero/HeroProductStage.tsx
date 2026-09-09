@@ -6,18 +6,26 @@ import Image from "next/image";
 import { heroMediaConfig } from "@/data/business";
 import { SparklesIcon } from "@/components/icons";
 
-// Dynamic import of 3D Scene with ssr: false
-const HeroCakeScene = dynamic(
-  () => import("./HeroCakeScene").then((mod) => mod.HeroCakeScene),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-16 h-16 rounded-full border-2 border-brand-gold/30 border-t-brand-gold animate-spin" />
-      </div>
-    ),
-  }
-);
+// Preload the 3D Scene chunk immediately at client module evaluation time
+const loadHeroCakeScene = () =>
+  import("./HeroCakeScene").then((mod) => mod.HeroCakeScene);
+
+if (typeof window !== "undefined") {
+  // Trigger chunk download concurrently with hydration
+  loadHeroCakeScene();
+}
+
+const HeroCakeScene = dynamic(loadHeroCakeScene, {
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
+      <div className="w-12 h-12 rounded-full border-2 border-brand-gold/25 border-t-brand-gold animate-spin" />
+      <span className="text-[11px] font-bold tracking-widest uppercase text-brand-chocolate-light/70 dark:text-brand-gold/80">
+        Loading 3D Craft...
+      </span>
+    </div>
+  ),
+});
 
 export interface HeroProductStageProps {
   className?: string;
@@ -31,10 +39,8 @@ export interface HeroProductStageProps {
 export const HeroProductStage = forwardRef<HTMLDivElement, HeroProductStageProps>(
   function HeroProductStage({ className = "", scrollProgress = 0 }, ref) {
     const [hasWebGL, setHasWebGL] = useState(true);
-    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
-      setIsMounted(true);
       try {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -59,7 +65,7 @@ export const HeroProductStage = forwardRef<HTMLDivElement, HeroProductStageProps
 
         {/* 3D Visual Stage Container */}
         <div className="hero-stage-visual relative w-full h-full overflow-hidden">
-          {isMounted && hasWebGL ? (
+          {hasWebGL ? (
             <div className="relative w-full h-full">
               <HeroCakeScene scrollProgress={scrollProgress} className="h-full w-full" />
             </div>

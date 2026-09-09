@@ -57,6 +57,9 @@ export function HeroSection() {
     const section = sectionRef.current;
     if (!section) return;
 
+    // Prevent mobile browser URL bar collapse/expand from triggering layout jumps
+    ScrollTrigger.config({ ignoreMobileResize: true });
+
     const ctx = gsap.context(() => {
       // Master GSAP Timeline bound to a single pinning ScrollTrigger
       // 0.00 to 0.70: Pure, unobstructed 360° 3D cake rotation with no overlay blocking the view
@@ -68,24 +71,14 @@ export function HeroSection() {
           end: "+=1200",
           pin: true,
           scrub: 0.2,
-          anticipatePin: 1,
           onUpdate: (self) => {
             scrollProgressRef.current = self.progress;
           },
         },
       });
 
-      // Refresh pin calculations after layout mounts and on complete asset load
+      // Synchronously register pinning once layout mounts
       ScrollTrigger.refresh();
-      const rafId = requestAnimationFrame(() => {
-        ScrollTrigger.refresh();
-      });
-      const timerId = setTimeout(() => {
-        ScrollTrigger.refresh();
-      }, 350);
-
-      const handleWindowLoad = () => ScrollTrigger.refresh();
-      window.addEventListener("load", handleWindowLoad);
 
       // 1. Fade out scroll hint immediately in first 15% of scroll
       tl.to(".hero-scroll-indicator", { opacity: 0, y: 14, duration: 0.15, ease: "power1.out" }, 0);
@@ -109,12 +102,6 @@ export function HeroSection() {
         },
         0.70
       );
-
-      return () => {
-        cancelAnimationFrame(rafId);
-        clearTimeout(timerId);
-        window.removeEventListener("load", handleWindowLoad);
-      };
     }, sectionRef);
 
     return () => ctx.revert();
@@ -124,7 +111,7 @@ export function HeroSection() {
     <section
       ref={sectionRef}
       id="hero"
-      className="relative isolate overflow-hidden -mt-[74px] sm:-mt-[82px] pt-[74px] sm:pt-[82px] w-full h-screen min-h-[540px] sm:min-h-[580px] lg:min-h-[640px] max-h-[1080px] bg-[#FFFDF8] dark:bg-[#120905] transition-colors duration-300 flex flex-col justify-between [touch-action:pan-y]"
+      className="relative isolate overflow-hidden pt-[74px] sm:pt-[82px] w-full h-screen min-h-[540px] sm:min-h-[580px] lg:min-h-[640px] max-h-[1080px] bg-[#FFFDF8] dark:bg-[#120905] transition-colors duration-300 flex flex-col justify-between [touch-action:pan-y]"
     >
       <HeroAtmosphere />
 

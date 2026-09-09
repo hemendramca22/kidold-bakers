@@ -118,7 +118,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 px-3 sm:px-6 pt-3 sm:pt-4">
+      <header className="fixed top-0 inset-x-0 z-40 px-3 sm:px-6 pt-3 sm:pt-4">
         <div
           className={`glass-navbar mx-auto flex max-w-7xl items-center justify-between rounded-full px-5 py-2.5 sm:px-6 transition-[max-width,padding,box-shadow] duration-300 ${
             isScrolled ? "max-w-6xl py-2" : ""

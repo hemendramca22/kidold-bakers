@@ -2,9 +2,16 @@
 
 import React, { useRef, useEffect, useState, Suspense } from "react";
 import * as THREE from "three";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree, useLoader } from "@react-three/fiber";
 import { ContactShadows } from "@react-three/drei";
 import { HeroCakeMesh } from "./HeroCakeMesh";
+
+// Pre-warm the logo texture so HeroCakeMesh renders without suspension delay
+if (typeof window !== "undefined") {
+  try {
+    useLoader.preload(THREE.TextureLoader, "/images/brand/kidold-logo-clean.png");
+  } catch {}
+}
 
 export interface HeroCakeSceneProps {
   scrollProgress?: number | React.RefObject<number> | { current: number }; // 0 to 1
