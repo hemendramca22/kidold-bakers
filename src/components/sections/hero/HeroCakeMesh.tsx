@@ -6,6 +6,7 @@ import { useFrame, useLoader } from "@react-three/fiber";
 
 interface HeroCakeMeshProps {
   scrollProgress?: number | React.RefObject<number> | { current: number }; // 0 to 1
+  touchRotation?: number | React.RefObject<number> | { current: number };
 }
 
 function getProgress(val: number | React.RefObject<number> | { current: number } | undefined): number {
@@ -280,7 +281,7 @@ function GoldFeatherPlume({ position = [0, 0, 0], rotation = [0, 0, 0], scale = 
  * - Stepped luxury gold & white turntable base platter with engraved rim script.
  * - Full 360° scroll turntable rotation with soft inertia.
  */
-export function HeroCakeMesh({ scrollProgress = 0 }: HeroCakeMeshProps) {
+export function HeroCakeMesh({ scrollProgress = 0, touchRotation = 0 }: HeroCakeMeshProps) {
   const rootGroup = useRef<THREE.Group>(null);
   const sparklesGroup = useRef<THREE.Group>(null);
   const enterScale = useRef(0.60);
@@ -497,7 +498,18 @@ export function HeroCakeMesh({ scrollProgress = 0 }: HeroCakeMeshProps) {
     const progress = THREE.MathUtils.clamp(getProgress(scrollProgress), 0, 1);
     const clockTime = state.clock.getElapsedTime();
 
-    const targetRotation = progress * Math.PI * 2;
+    // On mobile / touch devices: page scrolling must NOT rotate the cake at all.
+    // Cake rotation on mobile happens strictly through deliberate horizontal touch drag directly on the cake.
+    // On desktop / laptop: scroll continues to drive 360° turntable rotation as approved.
+    const isTouchDevice =
+      typeof window !== "undefined" &&
+      (window.innerWidth < 1024 ||
+        window.matchMedia("(pointer: coarse)").matches ||
+        window.matchMedia("(hover: none)").matches ||
+        "ontouchstart" in window);
+
+    const scrollMultiplier = isTouchDevice ? 0 : 1;
+    const targetRotation = progress * Math.PI * 2 * scrollMultiplier + (getProgress(touchRotation) || 0);
     rootGroup.current.rotation.y = THREE.MathUtils.damp(
       rootGroup.current.rotation.y,
       targetRotation,

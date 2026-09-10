@@ -26,30 +26,39 @@ function getProgress(val: number | React.RefObject<number> | { current: number }
 
 /**
  * Responsive Camera Controller
- * Manages macro zoom during State 3 (progress 0.35 - 0.55) and subtle desktop pointer tilt.
+ * Manages macro zoom during State 3 (progress 0.35 - 0.55),
+ * full continuous 3D camera arc from direct Front View (mouse at bottom)
+ * to overhead Top View (mouse at top), and subtle horizontal parallax.
  */
 function CameraRig({
   scrollProgress = 0,
+  touchT,
+  isTouchActive,
 }: {
   scrollProgress?: number | React.RefObject<number> | { current: number };
+  touchT?: React.MutableRefObject<number> | { current: number };
+  isTouchActive?: React.MutableRefObject<boolean> | { current: boolean };
 }) {
   const { camera, size } = useThree();
-  const mouse = useRef({ x: 0, y: 0 });
-  const isDesktop = useRef(false);
+  const mouseTarget = useRef({ x: 0, t: 0.35 });
+  const mouseCurrent = useRef({ x: 0, t: 0.35 });
+  const lookAtCurrent = useRef(0.70);
+  const isInteractive = useRef(false);
   const [deviceProfile, setDeviceProfile] = useState<"mobile" | "tablet" | "desktop">("desktop");
 
   useEffect(() => {
     const updateProfile = () => {
       const w = window.innerWidth;
+      const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
       if (w < 640) {
         setDeviceProfile("mobile");
-        isDesktop.current = false;
+        isInteractive.current = hasFinePointer;
       } else if (w < 1024) {
         setDeviceProfile("tablet");
-        isDesktop.current = false;
+        isInteractive.current = hasFinePointer || w >= 768;
       } else {
         setDeviceProfile("desktop");
-        isDesktop.current = true;
+        isInteractive.current = true;
       }
     };
 
@@ -57,72 +66,129 @@ function CameraRig({
     window.addEventListener("resize", updateProfile);
 
     const handlePointerMove = (e: MouseEvent) => {
-      if (!isDesktop.current) return;
-      // Very restrained pointer offset (max ±0.08 units)
-      mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 0.16;
-      mouse.current.y = (e.clientY / window.innerHeight - 0.5) * 0.12;
+      if (!isInteractive.current) return;
+      // Normalized horizontal offset [-1, +1]
+      const nx = (e.clientX / window.innerWidth - 0.5) * 2;
+
+      // Vertical hover mapping tuned for intuitive interaction across cake & hero:
+      // When cursor is at or above the top of the cake (clientY / innerHeight <= 0.16): t = 1.0 (Full Overhead Top View)
+      // When cursor is at the center of the cake (clientY / innerHeight ≈ 0.46): t = 0.35 (Signature 3/4 Perspective)
+      // When cursor is at or below the base platter (clientY / innerHeight >= 0.76): t = 0.0 (Direct Front View)
+      const yRatio = e.clientY / window.innerHeight;
+      const tRaw = 1.0 - (yRatio - 0.16) / (0.76 - 0.16);
+      const tClamped = THREE.MathUtils.clamp(tRaw, 0, 1);
+
+      mouseTarget.current.x = THREE.MathUtils.clamp(nx, -1, 1);
+      mouseTarget.current.t = tClamped;
+    };
+
+    const handlePointerLeave = () => {
+      // Smoothly return to signature 3/4 perspective when pointer leaves window
+      mouseTarget.current.x = 0;
+      mouseTarget.current.t = 0.35;
     };
 
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("mouseleave", handlePointerLeave);
     return () => {
       window.removeEventListener("resize", updateProfile);
       window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("mouseleave", handlePointerLeave);
     };
   }, []);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const p = THREE.MathUtils.clamp(getProgress(scrollProgress), 0, 1);
     const aspect = size.width / Math.max(1, size.height);
 
-    // Responsive camera framing:
-    // When viewport is in narrow portrait mode (aspect < 0.68),
-    // calculate exact camera distance Z to guarantee the 3.0-unit turntable platter never clips on left/right.
+    // Frame-rate independent smooth damping for buttery 60 FPS motion
+    const isTouch = isTouchActive && "current" in isTouchActive && isTouchActive.current;
+    const targetT = isTouch && touchT && "current" in touchT ? touchT.current : mouseTarget.current.t;
+
+    mouseCurrent.current.x = THREE.MathUtils.damp(mouseCurrent.current.x, mouseTarget.current.x, 4.0, delta);
+    mouseCurrent.current.t = THREE.MathUtils.damp(mouseCurrent.current.t, targetT, 4.0, delta);
+
+    // Responsive baseline camera framing:
     let baseZ = 5.6;
     let baseY = 0.82;
-    let targetLookAtY = 0.70;
+    let baseLookAtY = 0.70;
 
     if (aspect < 0.72) {
-      // Mobile / narrow portrait
+      // Mobile / narrow portrait: maintain safe width so platter never clips on left/right
       const tanHalfFov = Math.tan((38 * Math.PI) / 360);
-      const safePlatterWidth = 3.25; // 3.0 unit platter + margins
+      const safePlatterWidth = 3.25;
       baseZ = Math.max(8.8, safePlatterWidth / (2 * tanHalfFov * aspect));
       baseY = 0.94;
-      targetLookAtY = 0.70;
+      baseLookAtY = 0.70;
     } else if (deviceProfile === "tablet" || aspect < 1.1) {
       baseZ = 6.6;
       baseY = 0.86;
-      targetLookAtY = 0.70;
+      baseLookAtY = 0.70;
     } else {
       // Landscape / Desktop / Laptop screens:
-      // On 13-inch and compact laptop displays (viewport height ~550px-740px),
-      // dynamically dolly back camera distance Z and center lookAtY so the bottom turntable stand
-      // never clips against the taskbar or bottom edge, maintaining perfect margins.
       if (size.height < 740) {
         const heightDeficit = Math.max(0, 740 - size.height);
         baseZ = Math.min(6.5, 5.85 + heightDeficit * 0.0035);
         baseY = 0.76;
-        targetLookAtY = 0.66;
+        baseLookAtY = 0.66;
       } else {
         baseZ = 5.6;
         baseY = 0.82;
-        targetLookAtY = 0.70;
+        baseLookAtY = 0.70;
       }
     }
 
-    let targetZ = baseZ;
-    let targetY = baseY;
+    // Full 3D Camera Arc Interpolation:
+    // t = 0.0 (Cursor at bottom): Direct Front View (Y ≈ baseY - 0.44, Z ≈ baseZ + 0.15, lookAtY = 0.60)
+    // t = 0.35 (Cursor in center): Signature 3/4 Beauty Angle (Y = baseY, Z = baseZ, lookAtY = baseLookAtY)
+    // t = 1.0 (Cursor at top): Overhead Top View (Y ≈ topY, Z ≈ topZ, lookAtY = 0.72)
+    const t = mouseCurrent.current.t;
+    const nx = mouseCurrent.current.x;
 
-    if (p >= 0.35 && p < 0.55) {
-      const localT = Math.sin(((p - 0.35) / 0.2) * Math.PI);
-      targetZ = baseZ - localT * 0.65; // subtle macro dolly-in for artisan ganache detail
-      targetY = baseY + localT * 0.08;
+    let targetY: number;
+    let targetZ: number;
+    let targetLookAtY: number;
+
+    if (t <= 0.35) {
+      // Arc between Front View (t=0) and Signature 3/4 View (t=0.35)
+      const u = t / 0.35;
+      targetY = THREE.MathUtils.lerp(baseY - 0.44, baseY, u);
+      targetZ = THREE.MathUtils.lerp(baseZ + 0.15, baseZ, u);
+      targetLookAtY = THREE.MathUtils.lerp(0.60, baseLookAtY, u);
+    } else {
+      // Arc between Signature 3/4 View (t=0.35) and Full Overhead Top View (t=1.0)
+      const u = (t - 0.35) / 0.65;
+      const smoothU = u * u * (3 - 2 * u); // Smoothstep curve for seamless acceleration
+      // In top view, camera rises high above the cake and angles down directly over the top tier
+      const topY = Math.max(4.9, baseZ * 0.90);
+      const topZ = Math.max(2.3, baseZ * 0.42);
+      targetY = THREE.MathUtils.lerp(baseY, topY, smoothU);
+      targetZ = THREE.MathUtils.lerp(baseZ, topZ, smoothU);
+      targetLookAtY = THREE.MathUtils.lerp(baseLookAtY, 0.72, smoothU);
     }
 
-    camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetZ, 0.1);
-    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY + mouse.current.y, 0.1);
-    camera.position.x = THREE.MathUtils.lerp(camera.position.x, mouse.current.x, 0.1);
+    const targetX = nx * 0.32; // Subtle horizontal parallax
 
-    camera.lookAt(0, targetLookAtY, 0);
+    // Macro zoom during scroll progress 0.35 - 0.55 (strictly desktop; mobile scroll leaves camera untouched)
+    const isTouchDevice =
+      typeof window !== "undefined" &&
+      (window.innerWidth < 1024 ||
+        window.matchMedia("(pointer: coarse)").matches ||
+        window.matchMedia("(hover: none)").matches ||
+        "ontouchstart" in window);
+
+    if (!isTouchDevice && p >= 0.35 && p < 0.55) {
+      const localT = Math.sin(((p - 0.35) / 0.2) * Math.PI);
+      targetZ -= localT * 0.65;
+      targetY += localT * 0.08;
+    }
+
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, targetX, 5.0, delta);
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, targetY, 5.0, delta);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ, 5.0, delta);
+
+    lookAtCurrent.current = THREE.MathUtils.damp(lookAtCurrent.current, targetLookAtY, 5.0, delta);
+    camera.lookAt(0, lookAtCurrent.current, 0);
   });
 
   return null;
@@ -152,6 +218,19 @@ function isWebGLAvailable(): boolean {
  */
 export function HeroCakeScene({ scrollProgress = 0, className = "" }: HeroCakeSceneProps) {
   const [canRenderWebGL, setCanRenderWebGL] = useState(() => isWebGLAvailable());
+  const touchRotationRef = useRef(0);
+  const touchTRef = useRef(0.35);
+  const isTouchActiveRef = useRef(false);
+  const touchZoneRef = useRef<HTMLDivElement>(null);
+
+  // Gesture intent state machine: "idle" -> "pending" -> locked to "rotate" OR "tilt"
+  const gestureMode = useRef<"idle" | "pending" | "rotate" | "tilt">("idle");
+  const activePointerId = useRef<number | null>(null);
+  const startClientX = useRef(0);
+  const startClientY = useRef(0);
+  const startT = useRef(0.35);
+  const lastClientX = useRef(0);
+  const lastClientY = useRef(0);
 
   useEffect(() => {
     if (!canRenderWebGL) {
@@ -159,12 +238,117 @@ export function HeroCakeScene({ scrollProgress = 0, className = "" }: HeroCakeSc
     }
   }, [canRenderWebGL]);
 
+  // Prevent default browser scroll strictly after a deliberate cake gesture mode is locked
+  useEffect(() => {
+    const el = touchZoneRef.current;
+    if (!el) return;
+
+    const preventTouchScroll = (e: TouchEvent) => {
+      if ((gestureMode.current === "rotate" || gestureMode.current === "tilt") && e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    el.addEventListener("touchmove", preventTouchScroll, { passive: false });
+    return () => {
+      el.removeEventListener("touchmove", preventTouchScroll);
+    };
+  }, []);
+
   if (!canRenderWebGL) {
     return null;
   }
 
+  const handleTouchZonePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Desktop mouse uses window.pointermove hover — strictly handle touch / pen gestures
+    if (e.pointerType === "mouse") return;
+
+    activePointerId.current = e.pointerId;
+    gestureMode.current = "pending";
+    startClientX.current = e.clientX;
+    startClientY.current = e.clientY;
+    lastClientX.current = e.clientX;
+    lastClientY.current = e.clientY;
+    startT.current = touchTRef.current;
+  };
+
+  const handleTouchZonePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointerId.current !== e.pointerId || gestureMode.current === "idle") return;
+
+    // Gesture intent determination with 8px threshold:
+    if (gestureMode.current === "pending") {
+      const totalDx = e.clientX - startClientX.current;
+      const totalDy = e.clientY - startClientY.current;
+      const absX = Math.abs(totalDx);
+      const absY = Math.abs(totalDy);
+      const dist = Math.hypot(totalDx, totalDy);
+
+      if (dist < 8) {
+        return; // Movement below threshold: do not lock yet
+      }
+
+      // Lock intent exclusively into one mode for the entire gesture:
+      if (absX >= absY * 1.05) {
+        gestureMode.current = "rotate";
+        isTouchActiveRef.current = true;
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {}
+      } else {
+        gestureMode.current = "tilt";
+        isTouchActiveRef.current = true;
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {}
+      }
+    }
+
+    // Mode A: Horizontal cake rotation only (camera tilt untouched)
+    if (gestureMode.current === "rotate") {
+      const deltaX = e.clientX - lastClientX.current;
+      const clampedDx = THREE.MathUtils.clamp(deltaX, -40, 40);
+      touchRotationRef.current += clampedDx * 0.012;
+      lastClientX.current = e.clientX;
+      lastClientY.current = e.clientY;
+    }
+    // Mode B: Vertical camera tilt only (cake rotation untouched)
+    // Drag DOWN (positive totalDy) => move camera toward FRONT VIEW (t=0.0)
+    // Drag UP (negative totalDy) => move camera toward TOP / OVERHEAD VIEW (t=1.0)
+    else if (gestureMode.current === "tilt") {
+      const totalDy = e.clientY - startClientY.current;
+      const newT = THREE.MathUtils.clamp(startT.current - totalDy / 150, 0, 1);
+      touchTRef.current = newT;
+      lastClientX.current = e.clientX;
+      lastClientY.current = e.clientY;
+    }
+  };
+
+  const handleTouchZonePointerUpOrCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerId === activePointerId.current) {
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {}
+      activePointerId.current = null;
+      gestureMode.current = "idle";
+      isTouchActiveRef.current = false;
+      // Settle camera back to signature 3/4 beauty view on finger release
+      touchTRef.current = 0.35;
+    }
+  };
+
   return (
     <div className={`relative w-full h-full select-none ${className}`} data-component="hero-cake-scene">
+      {/* Mobile Interactive Cake Touch Zone (restricted strictly to visible cake; empty background scrolls immediately) */}
+      <div
+        ref={touchZoneRef}
+        className="cake-touch-zone absolute left-1/2 -translate-x-1/2 top-[20%] h-[52%] w-[68%] max-w-[270px] z-20 touch-none lg:hidden pointer-events-auto select-none"
+        onPointerDown={handleTouchZonePointerDown}
+        onPointerMove={handleTouchZonePointerMove}
+        onPointerUp={handleTouchZonePointerUpOrCancel}
+        onPointerCancel={handleTouchZonePointerUpOrCancel}
+        aria-label="Interactive 3D Cake Touch Stage"
+      />
+
       <Canvas
         camera={{ position: [0, 0.85, 5.6], fov: 38 }}
         dpr={[1, 2]}
@@ -181,8 +365,8 @@ export function HeroCakeScene({ scrollProgress = 0, className = "" }: HeroCakeSc
 
         {/* Primary Warm Key Light */}
         <directionalLight
-          position={[3.5, 4.8, 3.2]}
-          intensity={1.7}
+          position={[3.2, 6.0, 3.5]}
+          intensity={1.75}
           color="#FFE8CA"
           castShadow
           shadow-mapSize={[1024, 1024]}
@@ -191,7 +375,7 @@ export function HeroCakeScene({ scrollProgress = 0, className = "" }: HeroCakeSc
 
         {/* Golden Specular Rim / Back Light */}
         <directionalLight
-          position={[-3.5, 3.8, -2.5]}
+          position={[-3.5, 4.5, -2.5]}
           intensity={1.3}
           color="#F5C542"
         />
@@ -205,14 +389,21 @@ export function HeroCakeScene({ scrollProgress = 0, className = "" }: HeroCakeSc
 
         {/* Soft Front Accent Light for Gold Tools & Embossed Script */}
         <directionalLight
-          position={[0, 2.2, 4.2]}
-          intensity={0.9}
+          position={[0, 1.9, 4.6]}
+          intensity={1.05}
           color="#FFF6E0"
         />
 
         <Suspense fallback={null}>
-          <CameraRig scrollProgress={scrollProgress} />
-          <HeroCakeMesh scrollProgress={scrollProgress} />
+          <CameraRig
+            scrollProgress={scrollProgress}
+            touchT={touchTRef}
+            isTouchActive={isTouchActiveRef}
+          />
+          <HeroCakeMesh
+            scrollProgress={scrollProgress}
+            touchRotation={touchRotationRef}
+          />
 
           {/* Soft Ground Contact Shadow on Turntable Floor */}
           <ContactShadows

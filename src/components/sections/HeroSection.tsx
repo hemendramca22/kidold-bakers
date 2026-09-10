@@ -115,8 +115,8 @@ export function HeroSection() {
     >
       <HeroAtmosphere />
 
-      {/* Full-viewport 3D Cake Canvas Stage - pointer-events-none ensures zero touch gesture interference */}
-      <div className="absolute inset-0 z-0 w-full h-full pointer-events-none">
+      {/* Full-viewport 3D Cake Canvas Stage - only the centered cake-touch-zone receives touch on mobile */}
+      <div className="absolute inset-0 z-0 w-full h-full pointer-events-none [&_.cake-touch-zone]:pointer-events-auto">
         <HeroProductStage ref={stageRef} scrollProgress={scrollProgressRef} />
       </div>
 
@@ -170,7 +170,8 @@ export function HeroSection() {
         {/* Skeuomorphic Scroll Hint Indicator */}
         <div className="hero-scroll-indicator mx-auto text-center pointer-events-none pt-3 transition-all">
           <div className="inline-flex flex-col items-center gap-1 text-[10px] sm:text-[11px] font-bold tracking-widest uppercase text-brand-chocolate-light/75 dark:text-brand-gold/80">
-            <span>Scroll to Rotate 360°</span>
+            <span className="hidden sm:inline">Scroll to Rotate 360°</span>
+            <span className="sm:hidden">Drag cake to explore</span>
             <div className="w-5 h-7 rounded-full border border-brand-gold/50 flex items-start justify-center p-1 bg-white/50 dark:bg-black/30 backdrop-blur-sm shadow-sm">
               <div className="w-1.5 h-2 rounded-full bg-brand-gold animate-bounce" />
             </div>
