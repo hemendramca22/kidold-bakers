@@ -6,7 +6,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { businessData } from "@/data/business";
-import { MapPinIcon, PhoneIcon, WhatsAppIcon, ClockIcon } from "@/components/icons";
+import { MapPinIcon, PhoneIcon, WhatsAppIcon, ClockIcon, GoogleReviewIcon, GoogleMapsIcon } from "@/components/icons";
 import { getWhatsAppInquiryUrl } from "@/lib/whatsapp";
 import { registerGSAP, shouldReduceMotion, animateHeadingReveal } from "@/lib/motion";
 
@@ -208,15 +208,25 @@ export function LocalBusinessSection() {
                   <p className="text-xs text-brand-cream/70 max-w-sm mx-auto">
                     Dev Palace, Line Bazaar Rd (beside S.P Aawas / Front Police Line Gate), Husainabad, Jaunpur 222002
                   </p>
-                  <div className="pt-2">
+                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
                     <Button
                       variant="gold"
                       size="sm"
                       href={businessData.googleMapsUrl}
                       isExternal
-                      leftIcon={<MapPinIcon className="w-4 h-4 text-brand-chocolate" />}
+                      leftIcon={<GoogleMapsIcon className="w-4 h-4 text-brand-chocolate" />}
                     >
-                      Open in Google Maps
+                      Find us / Directions
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      href={businessData.socials.googleReviews}
+                      isExternal
+                      leftIcon={<GoogleReviewIcon className="w-4 h-4 text-amber-400" />}
+                      className="border-amber-400/40 text-amber-300 hover:bg-amber-400/15"
+                    >
+                      Review us on Google
                     </Button>
                   </div>
                 </div>

@@ -33,10 +33,14 @@ export const businessData: BusinessProfile = {
   email: "kidoldbakers@gmail.com",
   openingHoursDisplay: "Counter Pickups & Enquiries Open Daily (Call or WhatsApp to confirm hours)",
   serviceOverview: "Counter Pickups at Dev Palace, Line Bazaar & Local Jaunpur Celebration Delivery Enquiries",
-  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=KidOld+Bakers+Dev+Palace+Line+Bazaar+Rd+Husainabad+Jaunpur+222002",
+  googleMapsUrl: "https://maps.app.goo.gl/cCMH12Tdb7CjHyzx6",
   socials: {
-    instagram: "https://instagram.com/kidoldbakers",
-    facebook: "https://facebook.com/kidoldbakers",
+    instagram: "https://instagram.com/kidoldbakers/",
+    facebook: "https://facebook.com/profile.php?id=61587948673726",
+    googleBusiness: "https://share.google/AxLRACSvdbwtMGt7m",
+    googleMaps: "https://maps.app.goo.gl/cCMH12Tdb7CjHyzx6",
+    googleReviews: "https://g.page/r/CVPD2bEns-IAEAE/review",
+    whatsapp: "https://wa.me/919310971535",
   },
   promises: [
     {

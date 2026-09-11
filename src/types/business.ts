@@ -21,6 +21,10 @@ export interface BusinessProfile {
   socials: {
     instagram: string;
     facebook: string;
+    googleBusiness: string;
+    googleMaps: string;
+    googleReviews: string;
+    whatsapp: string;
   };
   promises: Array<{
     id: string;

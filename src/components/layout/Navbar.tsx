@@ -1,21 +1,32 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import { WhatsAppIcon, CakeStudioIcon } from "@/components/icons";
-import { getWhatsAppInquiryUrl } from "@/lib/whatsapp";
+import {
+  CakeStudioIcon,
+  HeartSparkleIcon,
+  BookOpenIcon,
+  ChevronDownIcon,
+  ShareIcon,
+  WhatsAppIcon,
+  InstagramIcon,
+  FacebookIcon,
+  GoogleIcon,
+  GoogleMapsIcon,
+  GoogleReviewIcon,
+} from "@/components/icons";
+import { businessData } from "@/data/business";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { smoothScrollTo } from "@/lib/motion";
 import { MobileNav } from "./MobileNav";
 
-const NAV_LINKS = [
+const BASE_NAV_LINKS = [
   { name: "Signature Cakes", href: "#signature-cakes" },
   { name: "Categories", href: "#categories" },
   { name: "Design My Cake", href: "#custom-cakes" },
-  { name: "Our Story", href: "#our-story" },
+  { name: "Stories", href: "#stories", isDropdown: true },
   { name: "Visit Us", href: "#visit-us" },
 ];
 
@@ -24,21 +35,59 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isStoriesOpen, setIsStoriesOpen] = useState(false);
+  const [isConnectOpen, setIsConnectOpen] = useState(false);
+
+  const storiesRef = useRef<HTMLDivElement>(null);
+  const connectRef = useRef<HTMLDivElement>(null);
 
   const isLinkActive = useCallback(
     (href: string) => {
       const sectionId = href.split("#")[1] || "";
-      return pathname === "/design-my-cake"
-        ? sectionId === "custom-cakes"
-        : activeSection === sectionId;
+      if (pathname === "/design-my-cake") {
+        return sectionId === "custom-cakes";
+      }
+      if (pathname.startsWith("/stories")) {
+        return sectionId === "stories" || sectionId === "our-story";
+      }
+      if (sectionId === "stories") {
+        return activeSection === "our-story";
+      }
+      return activeSection === sectionId;
     },
     [pathname, activeSection]
   );
 
-  const navLinks = NAV_LINKS.map((link) => ({
+  const navLinks = BASE_NAV_LINKS.map((link) => ({
     ...link,
     href: pathname === "/" ? link.href : `/${link.href}`,
   }));
+
+  // Close dropdowns on outside click or escape
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (storiesRef.current && !storiesRef.current.contains(e.target as Node)) {
+        setIsStoriesOpen(false);
+      }
+      if (connectRef.current && !connectRef.current.contains(e.target as Node)) {
+        setIsConnectOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsStoriesOpen(false);
+        setIsConnectOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     let frame = 0;
@@ -59,9 +108,12 @@ export function Navbar() {
         setActiveSection("custom-cakes");
         return;
       }
+      if (pathname.startsWith("/stories")) {
+        setActiveSection("stories");
+        return;
+      }
 
       if (scrollY < 180) {
-        // At the top hero, clear section active
         setActiveSection("");
         return;
       }
@@ -95,7 +147,6 @@ export function Navbar() {
     syncHash();
     updateNavigation();
 
-    // If opened directly with an anchor hash in URL, smoothly scroll to it
     if (typeof window !== "undefined" && window.location.hash) {
       const initialTarget = window.location.hash.replace("#", "");
       if (initialTarget) {
@@ -124,6 +175,7 @@ export function Navbar() {
             isScrolled ? "max-w-6xl py-2" : ""
           }`}
         >
+          {/* Brand Identity */}
           <Link
             href="/"
             className="group flex shrink-0 items-center gap-2.5 rounded-full p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
@@ -149,13 +201,116 @@ export function Navbar() {
             </div>
           </Link>
 
+          {/* Center Navigation Pill - Balanced with Natural Spacing */}
           <nav
-            className="hidden shrink-0 items-center gap-1 xl:gap-1.5 2xl:gap-2 rounded-full border border-brand-gold/30 dark:border-brand-gold/35 bg-white/35 dark:bg-black/40 p-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] xl:flex backdrop-blur-md"
+            className="hidden shrink-0 items-center gap-1.5 lg:gap-2 xl:gap-2.5 rounded-full border border-brand-gold/30 dark:border-brand-gold/35 bg-white/35 dark:bg-black/40 p-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.5)] lg:flex backdrop-blur-md"
             aria-label="Main Navigation"
           >
             {navLinks.map((link) => {
               const isActive = isLinkActive(link.href);
               const targetId = link.href.split("#")[1] || "";
+
+              // Stories Dropdown Item
+              if (link.isDropdown) {
+                return (
+                  <div
+                    key={link.name}
+                    className="relative"
+                    ref={storiesRef}
+                    onMouseEnter={() => setIsStoriesOpen(true)}
+                    onMouseLeave={() => setIsStoriesOpen(false)}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setIsStoriesOpen((prev) => !prev)}
+                      className={`btn-3d-tactile rounded-full h-8 2xl:h-9 px-3 xl:px-3.5 2xl:px-4 text-xs 2xl:text-sm font-bold whitespace-nowrap leading-none inline-flex items-center justify-center gap-1 tracking-tight transition-all duration-200 ${
+                        isActive
+                          ? "bg-[#2C1810] text-[#FFFDF7] border border-[#2C1810] shadow-tactile dark:metallic-gold-surface dark:text-[#1A0A04] dark:font-black dark:border-brand-gold/80"
+                          : "border border-transparent text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-brand-gold/15 dark:hover:bg-brand-gold/20 hover:text-brand-chocolate-dark dark:hover:text-brand-gold-sparkle"
+                      }`}
+                      aria-expanded={isStoriesOpen}
+                      aria-haspopup="true"
+                      aria-label="Stories and Journal menu"
+                    >
+                      <span>Stories</span>
+                      <ChevronDownIcon
+                        className={`w-3 h-3 transition-transform duration-200 ${
+                          isStoriesOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {isStoriesOpen && (
+                      <div
+                        role="menu"
+                        aria-label="Stories Menu"
+                        className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 min-w-[240px]"
+                      >
+                        <div className="rounded-2xl border border-brand-gold/30 dark:border-brand-gold/40 bg-white/95 dark:bg-[#1D0F0A]/95 backdrop-blur-xl p-2 shadow-tactile dark:shadow-[0_16px_40px_rgba(0,0,0,0.85)] flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-150">
+                          {/* Item 1: Our Story (Homepage Section) */}
+                          <a
+                            href={pathname === "/" ? "#our-story" : "/#our-story"}
+                            onClick={(e) => {
+                              setIsStoriesOpen(false);
+                              if (pathname === "/") {
+                                e.preventDefault();
+                                setActiveSection("our-story");
+                                if (typeof window !== "undefined") {
+                                  window.history.pushState(null, "", "#our-story");
+                                }
+                                smoothScrollTo("our-story");
+                              }
+                            }}
+                            role="menuitem"
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-brand-gold/15 dark:hover:bg-brand-gold/20 transition-all text-left group"
+                          >
+                            <span className="w-8 h-8 rounded-full bg-brand-crimson/15 dark:bg-brand-crimson/25 text-brand-crimson dark:text-brand-crimson-light flex items-center justify-center shrink-0 border border-brand-crimson/20">
+                              <HeartSparkleIcon className="w-4 h-4" />
+                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-brand-chocolate dark:text-brand-cream group-hover:text-brand-crimson dark:group-hover:text-brand-gold transition-colors">
+                                Our Story
+                              </span>
+                              <span className="text-[10px] text-brand-chocolate-light/70 dark:text-brand-cream/60">
+                                Heritage, family &amp; bakery craft
+                              </span>
+                            </div>
+                          </a>
+
+                          {/* Item 2: Bakery Journal (Dedicated Page) */}
+                          <Link
+                            href="/stories"
+                            onClick={() => setIsStoriesOpen(false)}
+                            role="menuitem"
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-brand-gold/15 dark:hover:bg-brand-gold/20 transition-all text-left group ${
+                              pathname.startsWith("/stories")
+                                ? "bg-brand-gold/20 dark:bg-brand-gold/25"
+                                : ""
+                            }`}
+                          >
+                            <span className="w-8 h-8 rounded-full bg-brand-gold/15 dark:bg-brand-gold/25 text-brand-gold flex items-center justify-center shrink-0 border border-brand-gold/30">
+                              <BookOpenIcon className="w-4 h-4" />
+                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-brand-chocolate dark:text-brand-cream group-hover:text-brand-gold transition-colors flex items-center gap-1.5">
+                                Bakery Journal
+                                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-brand-gold/25 text-brand-chocolate dark:text-brand-gold border border-brand-gold/40">
+                                  New
+                                </span>
+                              </span>
+                              <span className="text-[10px] text-brand-chocolate-light/70 dark:text-brand-cream/60">
+                                Guides, trends &amp; celebration ideas
+                              </span>
+                            </div>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              // Standard Navigation Items
               return (
                 <a
                   key={link.name}
@@ -182,53 +337,200 @@ export function Navbar() {
                   }`}
                   aria-current={isActive ? "page" : undefined}
                 >
+                  {link.name === "Design My Cake" && (
+                    <CakeStudioIcon className="w-3.5 h-3.5 text-brand-gold mr-1.5 inline-block shrink-0" />
+                  )}
                   {link.name}
                 </a>
               );
             })}
           </nav>
 
-          <div className="hidden shrink-0 items-center gap-2 xl:gap-2.5 xl:flex">
+          {/* Desktop Right Area: Theme Toggle & Compact Connect Popover */}
+          <div className="hidden shrink-0 items-center gap-2.5 lg:flex">
             <ThemeToggle />
-            <Button
-              variant="whatsapp"
-              size="sm"
-              href={getWhatsAppInquiryUrl()}
-              isExternal
-              leftIcon={<WhatsAppIcon className="h-4 w-4 text-brand-gold" />}
-              className="text-xs whitespace-nowrap"
+
+            {/* Compact Connect Control & Popover */}
+            <div
+              className="relative"
+              ref={connectRef}
+              onMouseEnter={() => setIsConnectOpen(true)}
+              onMouseLeave={() => setIsConnectOpen(false)}
             >
-              WhatsApp Order
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              href="#custom-cakes"
-              onClick={(e) => {
-                if (pathname === "/") {
-                  e.preventDefault();
-                  smoothScrollTo("custom-cakes");
-                }
-              }}
-              leftIcon={<CakeStudioIcon className="h-4 w-4 text-brand-gold" />}
-              className="text-xs whitespace-nowrap"
-            >
-              Design My Cake
-            </Button>
+              <button
+                type="button"
+                onClick={() => setIsConnectOpen((prev) => !prev)}
+                className="btn-3d-tactile rounded-full h-8 2xl:h-9 px-3 xl:px-3.5 text-xs 2xl:text-sm font-bold inline-flex items-center gap-1.5 border border-brand-gold/40 dark:border-brand-gold/40 bg-brand-gold/10 dark:bg-brand-gold/15 text-brand-chocolate dark:text-brand-gold-sparkle hover:bg-brand-gold/25 dark:hover:bg-brand-gold/25 transition-all shadow-tactile-sm"
+                aria-expanded={isConnectOpen}
+                aria-haspopup="true"
+                aria-label="Connect with KidOld Bakers"
+              >
+                <ShareIcon className="w-3.5 h-3.5 text-brand-gold" />
+                <span>Connect</span>
+                <ChevronDownIcon
+                  className={`w-3 h-3 text-brand-gold transition-transform duration-200 ${
+                    isConnectOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isConnectOpen && (
+                <div
+                  role="menu"
+                  aria-label="Connect channels"
+                  className="absolute top-full right-0 pt-2 z-50 w-72 sm:w-80"
+                >
+                  <div className="rounded-2xl border border-brand-gold/30 dark:border-brand-gold/40 bg-white/95 dark:bg-[#1D0F0A]/95 backdrop-blur-xl p-3 shadow-tactile dark:shadow-[0_16px_40px_rgba(0,0,0,0.85)] animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-2 py-1 mb-2 border-b border-brand-border/60 dark:border-brand-gold/20 flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-brand-chocolate-light dark:text-brand-gold/80">
+                        Connect &amp; Follow
+                      </span>
+                      <span className="text-[10px] text-brand-chocolate/60 dark:text-brand-cream/60">
+                        Jaunpur Hub
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {/* WhatsApp */}
+                      <a
+                        href={businessData.socials.whatsapp}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        role="menuitem"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-[#25D366]/30 hover:bg-[#25D366]/10 text-brand-chocolate dark:text-brand-cream transition-all group"
+                        title="Chat directly with our bakers on WhatsApp"
+                      >
+                        <span className="w-7 h-7 rounded-full bg-[#25D366]/15 text-[#25D366] flex items-center justify-center shrink-0">
+                          <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
+                        </span>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-xs font-bold truncate group-hover:text-[#25D366] transition-colors">
+                            WhatsApp
+                          </span>
+                          <span className="text-[10px] text-brand-chocolate-light/70 dark:text-brand-cream/60 truncate">
+                            Direct Order
+                          </span>
+                        </div>
+                      </a>
+
+                      {/* Instagram */}
+                      <a
+                        href={businessData.socials.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        role="menuitem"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-[#E1306C]/30 hover:bg-[#E1306C]/10 text-brand-chocolate dark:text-brand-cream transition-all group"
+                        title="Follow @kidoldbakers on Instagram"
+                      >
+                        <span className="w-7 h-7 rounded-full bg-[#E1306C]/15 text-[#E1306C] flex items-center justify-center shrink-0">
+                          <InstagramIcon className="w-4 h-4 text-[#E1306C]" />
+                        </span>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-xs font-bold truncate group-hover:text-[#E1306C] transition-colors">
+                            Instagram
+                          </span>
+                          <span className="text-[10px] text-brand-chocolate-light/70 dark:text-brand-cream/60 truncate">
+                            @kidoldbakers
+                          </span>
+                        </div>
+                      </a>
+
+                      {/* Facebook */}
+                      <a
+                        href={businessData.socials.facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        role="menuitem"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-[#1877F2]/30 hover:bg-[#1877F2]/10 text-brand-chocolate dark:text-brand-cream transition-all group"
+                        title="KidOld Bakers Official Facebook Page"
+                      >
+                        <span className="w-7 h-7 rounded-full bg-[#1877F2]/15 text-[#1877F2] flex items-center justify-center shrink-0">
+                          <FacebookIcon className="w-4 h-4 text-[#1877F2]" />
+                        </span>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-xs font-bold truncate group-hover:text-[#1877F2] transition-colors">
+                            Facebook
+                          </span>
+                          <span className="text-[10px] text-brand-chocolate-light/70 dark:text-brand-cream/60 truncate">
+                            Official Page
+                          </span>
+                        </div>
+                      </a>
+
+                      {/* Google Business Profile */}
+                      <a
+                        href={businessData.socials.googleBusiness}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        role="menuitem"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-brand-gold/40 hover:bg-brand-gold/10 text-brand-chocolate dark:text-brand-cream transition-all group"
+                        title="KidOld Bakers Verified Google Business Profile"
+                      >
+                        <span className="w-7 h-7 rounded-full bg-brand-gold/15 text-brand-gold flex items-center justify-center shrink-0">
+                          <GoogleIcon className="w-4 h-4 text-brand-gold" />
+                        </span>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-xs font-bold truncate group-hover:text-brand-gold transition-colors">
+                            Google Profile
+                          </span>
+                          <span className="text-[10px] text-brand-chocolate-light/70 dark:text-brand-cream/60 truncate">
+                            Business Info
+                          </span>
+                        </div>
+                      </a>
+
+                      {/* Google Maps / Directions */}
+                      <a
+                        href={businessData.socials.googleMaps}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        role="menuitem"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-brand-crimson/30 hover:bg-brand-crimson/10 text-brand-chocolate dark:text-brand-cream transition-all group"
+                        title="Directions to KidOld Bakers on Google Maps"
+                      >
+                        <span className="w-7 h-7 rounded-full bg-brand-crimson/15 text-brand-crimson dark:text-brand-gold flex items-center justify-center shrink-0">
+                          <GoogleMapsIcon className="w-4 h-4 text-brand-crimson dark:text-brand-gold" />
+                        </span>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-xs font-bold truncate group-hover:text-brand-crimson dark:group-hover:text-brand-gold transition-colors">
+                            Find us / Directions
+                          </span>
+                          <span className="text-[10px] text-brand-chocolate-light/70 dark:text-brand-cream/60 truncate">
+                            Line Bazaar Rd
+                          </span>
+                        </div>
+                      </a>
+
+                      {/* Google Reviews */}
+                      <a
+                        href={businessData.socials.googleReviews}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        role="menuitem"
+                        className="flex items-center gap-2 p-2 rounded-xl border border-transparent hover:border-amber-400/40 hover:bg-amber-400/10 text-brand-chocolate dark:text-brand-cream transition-all group"
+                        title="Review KidOld Bakers on Google"
+                      >
+                        <span className="w-7 h-7 rounded-full bg-amber-400/15 text-amber-500 flex items-center justify-center shrink-0">
+                          <GoogleReviewIcon className="w-4 h-4 text-amber-500" />
+                        </span>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-xs font-bold truncate group-hover:text-amber-500 transition-colors">
+                            Review us on Google
+                          </span>
+                          <span className="text-[10px] text-brand-chocolate-light/70 dark:text-brand-cream/60 truncate">
+                            5-Star Rating
+                          </span>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 xl:hidden">
+          {/* Mobile Right Controls: Theme Toggle & Menu Hamburger */}
+          <div className="flex items-center gap-2 lg:hidden">
             <ThemeToggle />
-            <Button
-              variant="whatsapp"
-              size="sm"
-              href={getWhatsAppInquiryUrl()}
-              isExternal
-              className="min-h-[36px] px-2.5"
-              aria-label="Order on WhatsApp"
-            >
-              <WhatsAppIcon className="h-4 w-4 text-brand-gold" />
-            </Button>
             <button
               type="button"
               onClick={() => setIsMobileOpen(true)}
@@ -244,10 +546,10 @@ export function Navbar() {
         </div>
       </header>
 
+      {/* Mobile Drawer Navigation */}
       <MobileNav
         isOpen={isMobileOpen}
         onClose={() => setIsMobileOpen(false)}
-        navLinks={navLinks}
         activeSection={activeSection}
       />
     </>

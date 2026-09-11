@@ -17,6 +17,7 @@ import { registerGSAP, shouldReduceMotion, smoothScrollTo } from "@/lib/motion";
  * - Restrained scroll hint that fades out on scroll scrub
  */
 export function HeroSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const scrollProgressRef = useRef<number>(0);
@@ -102,17 +103,18 @@ export function HeroSection() {
         },
         0.70
       );
-    }, sectionRef);
+    }, containerRef);
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      id="hero"
-      className="relative isolate overflow-hidden pt-[74px] sm:pt-[82px] w-full h-screen min-h-[540px] sm:min-h-[580px] lg:min-h-[640px] max-h-[1080px] bg-[#FFFDF8] dark:bg-[#120905] transition-colors duration-300 flex flex-col justify-between [touch-action:pan-y]"
-    >
+    <div ref={containerRef} className="relative w-full">
+      <section
+        ref={sectionRef}
+        id="hero"
+        className="relative isolate overflow-hidden pt-[74px] sm:pt-[82px] w-full h-screen min-h-[540px] sm:min-h-[580px] lg:min-h-[640px] max-h-[1080px] bg-[#FFFDF8] dark:bg-[#120905] transition-colors duration-300 flex flex-col justify-between [touch-action:pan-y]"
+      >
       <HeroAtmosphere />
 
       {/* Full-viewport 3D Cake Canvas Stage - only the centered cake-touch-zone receives touch on mobile */}
@@ -178,6 +180,7 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </div>
   );
 }
