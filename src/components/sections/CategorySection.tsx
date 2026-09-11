@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
+import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Card } from "@/components/ui/Card";
@@ -103,12 +104,10 @@ export function CategorySection() {
             return (
               <CardTiltWrapper key={cat.id} className="category-card-item">
                 <Card className="group flex flex-col h-full bg-white dark:bg-[#1D0F0A] metallic-card-rim border border-brand-border/80 dark:border-brand-gold/30 shadow-tactile dark:shadow-[0_12px_32px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(245,197,66,0.2)] hover:shadow-tactile-hover hover:border-brand-gold/60 dark:hover:border-brand-gold transition-all duration-300">
-                  <a
-                    href={getWhatsAppInquiryUrl({ categoryName: cat.name })}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href={cat.routeHref || `/categories/${cat.slug}`}
                     className="flex flex-col h-full"
-                    aria-label={`Inquire about ${cat.name} on WhatsApp`}
+                    aria-label={`Explore ${cat.name} catalog`}
                   >
                     {/* Category Image */}
                     <div className="relative h-52 sm:h-60 w-full overflow-hidden bg-brand-cream-warm dark:bg-[#150A06]">
@@ -156,17 +155,28 @@ export function CategorySection() {
                       </div>
 
                       <div className="card-tilt-cta pt-3 border-t border-brand-border/50 dark:border-brand-gold/20 flex items-center justify-between text-xs font-bold text-brand-chocolate dark:text-brand-gold group-hover:text-brand-crimson dark:group-hover:text-brand-gold-sparkle transition-colors duration-200">
-                        <span>Inquire Today&apos;s Fresh Batch</span>
+                        <span>Explore {cat.name}</span>
                         <span className="transition-transform duration-300 group-hover:translate-x-1 text-brand-crimson dark:text-brand-gold">
                           →
                         </span>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 </Card>
               </CardTiltWrapper>
             );
           })}
+        </div>
+
+        {/* Explore All Hub Link */}
+        <div className="mt-12 text-center">
+          <Link
+            href="/categories"
+            className="btn-3d-tactile inline-flex items-center px-8 py-3.5 rounded-full bg-brand-chocolate text-white dark:bg-brand-gold dark:text-brand-chocolate font-bold text-xs uppercase tracking-wider hover:bg-brand-crimson dark:hover:bg-brand-gold-sparkle transition-all shadow-tactile"
+          >
+            <span>Explore Complete Categories Hub (Cakes, Pastries & More)</span>
+            <span className="ml-2">→</span>
+          </Link>
         </div>
       </Container>
     </section>

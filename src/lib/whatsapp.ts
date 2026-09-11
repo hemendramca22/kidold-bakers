@@ -19,11 +19,13 @@ export interface CustomCakeBrief {
  */
 export function getWhatsAppInquiryUrl(params?: {
   productName?: string;
+  cakeName?: string;
   categoryName?: string;
   isCustomCake?: boolean;
   customCake?: CustomCakeBrief;
 }): string {
   const number = businessData.whatsappNumber;
+  const productName = params?.cakeName || params?.productName;
   let text = `Hello KidOld Bakers! 👋\n\n`;
 
   if (params?.customCake) {
@@ -59,8 +61,8 @@ export function getWhatsAppInquiryUrl(params?: {
     text += `Please confirm availability, feasibility and final details. 🎂`;
   } else if (params?.isCustomCake) {
     text += `I would like to inquire about designing a *Custom Celebration Cake* for an upcoming occasion in Jaunpur.\n\nPlease confirm availability, feasibility and final details. 🎂`;
-  } else if (params?.productName) {
-    text += `I would like to check availability and place an order for:\n*${params.productName}* (${params.categoryName || "KidOld Special"}).\n\nPlease confirm counter availability and pickup details.`;
+  } else if (productName) {
+    text += `I would like to check availability and place an order for:\n*${productName}* (${params?.categoryName || "KidOld Special"}).\n\nPlease confirm counter availability and pickup details.`;
   } else {
     text += `I would like to inquire about today's fresh bakery bakes and place an order at your Jaunpur bakery counter.`;
   }

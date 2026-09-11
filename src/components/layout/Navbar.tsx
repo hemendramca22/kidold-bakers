@@ -24,9 +24,9 @@ import { MobileNav } from "./MobileNav";
 
 const BASE_NAV_LINKS = [
   { name: "Signature Cakes", href: "#signature-cakes" },
-  { name: "Categories", href: "#categories" },
+  { name: "Categories", href: "#categories", isDropdown: true, dropdownType: "categories" },
   { name: "Design My Cake", href: "#custom-cakes" },
-  { name: "Stories", href: "#stories", isDropdown: true },
+  { name: "Stories", href: "#stories", isDropdown: true, dropdownType: "stories" },
   { name: "Visit Us", href: "#visit-us" },
 ];
 
@@ -35,9 +35,11 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [isStoriesOpen, setIsStoriesOpen] = useState(false);
   const [isConnectOpen, setIsConnectOpen] = useState(false);
 
+  const categoriesRef = useRef<HTMLDivElement>(null);
   const storiesRef = useRef<HTMLDivElement>(null);
   const connectRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +48,9 @@ export function Navbar() {
       const sectionId = href.split("#")[1] || "";
       if (pathname === "/design-my-cake") {
         return sectionId === "custom-cakes";
+      }
+      if (pathname.startsWith("/categories")) {
+        return sectionId === "categories";
       }
       if (pathname.startsWith("/stories")) {
         return sectionId === "stories" || sectionId === "our-story";
@@ -66,6 +71,9 @@ export function Navbar() {
   // Close dropdowns on outside click or escape
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
+      if (categoriesRef.current && !categoriesRef.current.contains(e.target as Node)) {
+        setIsCategoriesOpen(false);
+      }
       if (storiesRef.current && !storiesRef.current.contains(e.target as Node)) {
         setIsStoriesOpen(false);
       }
@@ -76,6 +84,7 @@ export function Navbar() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        setIsCategoriesOpen(false);
         setIsStoriesOpen(false);
         setIsConnectOpen(false);
       }
@@ -210,8 +219,186 @@ export function Navbar() {
               const isActive = isLinkActive(link.href);
               const targetId = link.href.split("#")[1] || "";
 
+              // Categories Dropdown Item
+              if (link.isDropdown && link.dropdownType === "categories") {
+                return (
+                  <div
+                    key={link.name}
+                    className="relative"
+                    ref={categoriesRef}
+                    onMouseEnter={() => setIsCategoriesOpen(true)}
+                    onMouseLeave={() => setIsCategoriesOpen(false)}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setIsCategoriesOpen((prev) => !prev)}
+                      className={`btn-3d-tactile rounded-full h-8 2xl:h-9 px-3 xl:px-3.5 2xl:px-4 text-xs 2xl:text-sm font-bold whitespace-nowrap leading-none inline-flex items-center justify-center gap-1 tracking-tight transition-all duration-200 ${
+                        isActive
+                          ? "bg-[#2C1810] text-[#FFFDF7] border border-[#2C1810] shadow-tactile dark:metallic-gold-surface dark:text-[#1A0A04] dark:font-black dark:border-brand-gold/80"
+                          : "border border-transparent text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-brand-gold/15 dark:hover:bg-brand-gold/20 hover:text-brand-chocolate-dark dark:hover:text-brand-gold-sparkle"
+                      }`}
+                      aria-expanded={isCategoriesOpen}
+                      aria-haspopup="true"
+                      aria-label="Product categories menu"
+                    >
+                      <span>Categories</span>
+                      <ChevronDownIcon
+                        className={`w-3 h-3 transition-transform duration-200 ${
+                          isCategoriesOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {isCategoriesOpen && (
+                      <div
+                        role="menu"
+                        aria-label="Categories Menu"
+                        className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 w-[580px] xl:w-[620px]"
+                      >
+                        <div className="rounded-3xl border border-brand-gold/40 dark:border-brand-gold/50 bg-white/95 dark:bg-[#1D0F0A]/95 backdrop-blur-2xl p-4 shadow-tactile dark:shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
+                          {/* 3-Column Hierarchy Grid */}
+                          <div className="grid grid-cols-12 gap-3 text-left">
+                            {/* Col 1: Cakes (Hero Priority) */}
+                            <div className="col-span-5 flex flex-col gap-1.5 p-2.5 rounded-2xl bg-brand-cream/60 dark:bg-black/30 border border-brand-border/40 dark:border-brand-gold/20">
+                              <span className="text-[11px] font-black uppercase tracking-wider text-brand-crimson dark:text-brand-gold flex items-center gap-1.5 px-1">
+                                <span className="w-2 h-2 rounded-full bg-brand-crimson animate-pulse" />
+                                Cakes (Hero)
+                              </span>
+
+                              <Link
+                                href="/categories/pre-made-cakes"
+                                onClick={() => setIsCategoriesOpen(false)}
+                                className="group flex flex-col p-2 rounded-xl hover:bg-white dark:hover:bg-brand-gold/15 transition-all"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-brand-chocolate dark:text-brand-cream group-hover:text-brand-crimson dark:group-hover:text-brand-gold">
+                                    Pre-Made Cakes
+                                  </span>
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-brand-crimson/15 text-brand-crimson dark:text-brand-gold">
+                                    Daily Ready
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-brand-chocolate/70 dark:text-brand-cream/60 mt-0.5">
+                                  14+ celebration tiers
+                                </span>
+                              </Link>
+
+                              <Link
+                                href="/categories/custom-cakes"
+                                onClick={() => setIsCategoriesOpen(false)}
+                                className="group flex flex-col p-2 rounded-xl hover:bg-white dark:hover:bg-brand-gold/15 transition-all"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-brand-chocolate dark:text-brand-cream group-hover:text-brand-gold">
+                                    Custom Cakes
+                                  </span>
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-brand-gold/20 text-brand-chocolate dark:text-brand-gold">
+                                    Studio
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-brand-chocolate/70 dark:text-brand-cream/60 mt-0.5">
+                                  10 celebration styles &amp; 3D tool
+                                </span>
+                              </Link>
+                            </div>
+
+                            {/* Col 2: Pastries (Primary Priority) */}
+                            <div className="col-span-3 flex flex-col gap-1.5 p-2.5 rounded-2xl bg-brand-cream/60 dark:bg-black/30 border border-brand-border/40 dark:border-brand-gold/20">
+                              <span className="text-[11px] font-black uppercase tracking-wider text-brand-apricot dark:text-brand-gold flex items-center gap-1.5 px-1">
+                                <span className="w-2 h-2 rounded-full bg-brand-gold" />
+                                Pastries
+                              </span>
+
+                              <Link
+                                href="/categories/pastries"
+                                onClick={() => setIsCategoriesOpen(false)}
+                                className="group flex flex-col p-2 rounded-xl hover:bg-white dark:hover:bg-brand-gold/15 transition-all"
+                              >
+                                <span className="text-xs font-bold text-brand-chocolate dark:text-brand-cream group-hover:text-brand-gold">
+                                  Artisan Pastries
+                                </span>
+                                <span className="text-[10px] text-brand-chocolate/70 dark:text-brand-cream/60 mt-0.5">
+                                  Single-portion dessert slices
+                                </span>
+                              </Link>
+                            </div>
+
+                            {/* Col 3: Food & Beverages (Supporting) */}
+                            <div className="col-span-4 flex flex-col gap-1 p-2.5 rounded-2xl bg-brand-cream/60 dark:bg-black/30 border border-brand-border/40 dark:border-brand-gold/20">
+                              <span className="text-[11px] font-black uppercase tracking-wider text-brand-chocolate/70 dark:text-brand-cream/70 px-1">
+                                Food &amp; Drinks
+                              </span>
+
+                              <div className="grid grid-cols-2 gap-1 text-[11px] font-semibold">
+                                <Link
+                                  href="/categories/pizza"
+                                  onClick={() => setIsCategoriesOpen(false)}
+                                  className="px-1.5 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-white dark:hover:bg-brand-gold/15 hover:text-brand-crimson dark:hover:text-brand-gold transition-all"
+                                >
+                                  Pizza
+                                </Link>
+                                <Link
+                                  href="/categories/burgers"
+                                  onClick={() => setIsCategoriesOpen(false)}
+                                  className="px-1.5 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-white dark:hover:bg-brand-gold/15 hover:text-brand-crimson dark:hover:text-brand-gold transition-all"
+                                >
+                                  Burgers
+                                </Link>
+                                <Link
+                                  href="/categories/sandwiches"
+                                  onClick={() => setIsCategoriesOpen(false)}
+                                  className="px-1.5 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-white dark:hover:bg-brand-gold/15 hover:text-brand-crimson dark:hover:text-brand-gold transition-all"
+                                >
+                                  Sandwiches
+                                </Link>
+                                <Link
+                                  href="/categories/patties-snacks"
+                                  onClick={() => setIsCategoriesOpen(false)}
+                                  className="px-1.5 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-white dark:hover:bg-brand-gold/15 hover:text-brand-crimson dark:hover:text-brand-gold transition-all"
+                                >
+                                  Patties
+                                </Link>
+                                <Link
+                                  href="/categories/hot-beverages"
+                                  onClick={() => setIsCategoriesOpen(false)}
+                                  className="px-1.5 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-white dark:hover:bg-brand-gold/15 hover:text-brand-crimson dark:hover:text-brand-gold transition-all"
+                                >
+                                  Hot Sips
+                                </Link>
+                                <Link
+                                  href="/categories/cold-beverages"
+                                  onClick={() => setIsCategoriesOpen(false)}
+                                  className="px-1.5 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-white dark:hover:bg-brand-gold/15 hover:text-brand-crimson dark:hover:text-brand-gold transition-all"
+                                >
+                                  Cold Shakes
+                                </Link>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Bottom Hub Link */}
+                          <div className="pt-2 border-t border-brand-border/40 dark:border-brand-gold/20 flex items-center justify-between px-2">
+                            <span className="text-[10px] text-brand-chocolate/70 dark:text-brand-cream/60">
+                              100% Pure Veg • Line Bazaar, Jaunpur
+                            </span>
+                            <Link
+                              href="/categories"
+                              onClick={() => setIsCategoriesOpen(false)}
+                              className="text-xs font-bold text-brand-crimson dark:text-brand-gold hover:underline flex items-center gap-1"
+                            >
+                              <span>Explore All Categories</span>
+                              <span>→</span>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               // Stories Dropdown Item
-              if (link.isDropdown) {
+              if (link.isDropdown && link.dropdownType === "stories") {
                 return (
                   <div
                     key={link.name}

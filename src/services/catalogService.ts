@@ -1,4 +1,4 @@
-import { Category, Subcategory } from "@/types/category";
+import { Category, Subcategory, CategoryHierarchy } from "@/types/category";
 import { Product, ProductOccasion } from "@/types/product";
 import { categoriesData } from "@/data/categories";
 import { productsData } from "@/data/products";
@@ -7,6 +7,7 @@ export interface CategoryFilter {
   activeOnly?: boolean;
   publishedOnly?: boolean;
   featuredOnly?: boolean;
+  hierarchyOnly?: CategoryHierarchy;
   parentId?: string | null;
 }
 
@@ -41,6 +42,9 @@ export interface ICatalogService {
   // Synchronous convenience accessors for immediate SSR / client rendering
   getCategoriesSync(filter?: CategoryFilter): Category[];
   getFeaturedCategoriesSync(): Category[];
+  getHeroCategoriesSync(): Category[];
+  getPrimaryCategoriesSync(): Category[];
+  getSupportingCategoriesSync(): Category[];
   getProductsSync(filter?: ProductFilter): Product[];
   getSignatureProductsSync(): Product[];
 }
@@ -58,6 +62,7 @@ export class StaticCatalogService implements ICatalogService {
       activeOnly = true,
       publishedOnly = true,
       featuredOnly,
+      hierarchyOnly,
       parentId,
     } = filter;
 
@@ -66,6 +71,7 @@ export class StaticCatalogService implements ICatalogService {
         if (activeOnly && !cat.isActive) return false;
         if (publishedOnly && !cat.isPublished) return false;
         if (featuredOnly !== undefined && cat.isFeatured !== featuredOnly) return false;
+        if (hierarchyOnly !== undefined && cat.hierarchy !== hierarchyOnly) return false;
         if (parentId !== undefined && cat.parentId !== parentId) return false;
         return true;
       })
@@ -78,6 +84,18 @@ export class StaticCatalogService implements ICatalogService {
 
   public getFeaturedCategoriesSync(): Category[] {
     return this.getCategoriesSync({ featuredOnly: true });
+  }
+
+  public getHeroCategoriesSync(): Category[] {
+    return this.getCategoriesSync({ hierarchyOnly: "hero" });
+  }
+
+  public getPrimaryCategoriesSync(): Category[] {
+    return this.getCategoriesSync({ hierarchyOnly: "primary" });
+  }
+
+  public getSupportingCategoriesSync(): Category[] {
+    return this.getCategoriesSync({ hierarchyOnly: "supporting" });
   }
 
   public async getCategoryBySlug(slug: string): Promise<Category | null> {
@@ -128,7 +146,15 @@ export class StaticCatalogService implements ICatalogService {
         if (publishedOnly && !prod.isPublished) return false;
         if (availableOnly && !prod.isAvailable) return false;
         if (signatureOnly !== undefined && prod.isSignature !== signatureOnly) return false;
-        if (categoryId && prod.categoryId !== categoryId) return false;
+        if (categoryId) {
+          if (categoryId === "celebration-cakes") {
+            if (prod.categoryId !== "celebration-cakes" && prod.categoryId !== "pre-made-cakes") return false;
+          } else if (categoryId === "desserts-pastries") {
+            if (prod.categoryId !== "desserts-pastries" && prod.categoryId !== "pastries") return false;
+          } else if (prod.categoryId !== categoryId) {
+            return false;
+          }
+        }
         if (subcategoryId && prod.subcategoryId !== subcategoryId) return false;
         if (occasion && !prod.occasions.includes(occasion)) return false;
         return true;

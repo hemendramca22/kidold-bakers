@@ -1,6 +1,7 @@
 import { CatalogImage } from "@/types/category";
 
 export type ProductOccasion = "birthdays" | "anniversaries" | "kids" | "teatime" | "celebrations";
+export type CakeFlavorType = "all" | "chocolate" | "fruity" | "caramel" | "fusion" | "classic";
 
 /**
  * Core Product model prepared for relational database schema (PostgreSQL/Supabase).
@@ -29,6 +30,9 @@ export interface Product {
   image: CatalogImage | string;
   gallery?: (CatalogImage | string)[];
   flavorNotes: string[];
+  flavorType?: CakeFlavorType;
+  customStyleCategory?: string; // For custom cakes e.g. "Birthday", "Wedding", "Floral", etc.
+  servingGuidance?: string; // e.g. "Serves 8-10 people"
   bakerNote?: string;
   occasions: ProductOccasion[];
   createdAt?: string;

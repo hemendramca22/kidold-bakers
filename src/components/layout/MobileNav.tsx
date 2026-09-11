@@ -30,6 +30,7 @@ interface MobileNavProps {
 
 export function MobileNav({ isOpen, onClose, activeSection }: MobileNavProps) {
   const pathname = usePathname();
+  const [isCategoriesExpanded, setIsCategoriesExpanded] = useState(false);
   const [isStoriesExpanded, setIsStoriesExpanded] = useState(false);
 
   useEffect(() => {
@@ -119,18 +120,141 @@ export function MobileNav({ isOpen, onClose, activeSection }: MobileNavProps) {
               Signature Cakes
             </button>
 
-            {/* Categories */}
-            <button
-              type="button"
-              onClick={() => handleAnchorClick("categories")}
-              className={`w-full text-left px-4 py-2.5 rounded-2xl text-sm font-bold transition-all border ${
-                activeSection === "categories"
-                  ? "bg-[#2C1810] text-[#FFFDF7] border-[#2C1810] shadow-tactile dark:bg-[#F5C542] dark:text-[#1A0D08] dark:font-black dark:border-[#F5C542] dark:shadow-gold-tactile"
-                  : "text-brand-chocolate dark:text-brand-cream/80 hover:bg-brand-gold/15 dark:hover:bg-brand-gold/20 hover:text-brand-chocolate-dark dark:hover:text-brand-gold-sparkle border-transparent"
-              }`}
-            >
-              Categories
-            </button>
+            {/* Categories Accordion */}
+            <div className="rounded-2xl border border-brand-border/60 dark:border-brand-gold/20 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setIsCategoriesExpanded((prev) => !prev)}
+                className={`w-full text-left px-4 py-2.5 text-sm font-bold flex items-center justify-between transition-colors ${
+                  activeSection === "categories" || pathname.startsWith("/categories")
+                    ? "bg-brand-gold/15 text-brand-chocolate dark:text-brand-gold-sparkle"
+                    : "text-brand-chocolate dark:text-brand-cream/80 hover:bg-brand-gold/10"
+                }`}
+                aria-expanded={isCategoriesExpanded}
+              >
+                <div className="flex items-center gap-2">
+                  <span>Categories</span>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-crimson/15 text-brand-crimson dark:text-brand-gold">
+                    Cakes &amp; More
+                  </span>
+                </div>
+                <ChevronDownIcon
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isCategoriesExpanded ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isCategoriesExpanded && (
+                <div className="px-3 py-2.5 bg-brand-gold/5 dark:bg-black/20 flex flex-col gap-2 border-t border-brand-border/40 dark:border-brand-gold/15 animate-in fade-in duration-150">
+                  {/* 1. Cakes (Hero Priority) */}
+                  <div className="flex flex-col gap-1 pl-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-brand-crimson dark:text-brand-gold">
+                      Cakes (Hero Priority)
+                    </span>
+                    <Link
+                      href="/categories/pre-made-cakes"
+                      onClick={onClose}
+                      className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-brand-chocolate dark:text-brand-cream/90 hover:bg-brand-gold/20 transition-all"
+                    >
+                      <span>Pre-Made Celebration Cakes</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-brand-crimson/10 text-brand-crimson dark:text-brand-gold">
+                        Ready
+                      </span>
+                    </Link>
+                    <Link
+                      href="/categories/custom-cakes"
+                      onClick={onClose}
+                      className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-brand-chocolate dark:text-brand-cream/90 hover:bg-brand-gold/20 transition-all"
+                    >
+                      <span>Custom Designer Cakes</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-brand-gold/20 text-brand-chocolate dark:text-brand-gold">
+                        Studio
+                      </span>
+                    </Link>
+                  </div>
+
+                  {/* 2. Pastries (Primary Priority) */}
+                  <div className="flex flex-col gap-1 pl-1 pt-1 border-t border-brand-border/30 dark:border-brand-gold/10">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-brand-apricot dark:text-brand-gold">
+                      Pastries (Primary Priority)
+                    </span>
+                    <Link
+                      href="/categories/pastries"
+                      onClick={onClose}
+                      className="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold text-brand-chocolate dark:text-brand-cream/90 hover:bg-brand-gold/20 transition-all"
+                    >
+                      <span>Artisan Pastry Slices</span>
+                      <span className="text-[9px] text-brand-chocolate/60 dark:text-brand-cream/60">
+                        Single Slices
+                      </span>
+                    </Link>
+                  </div>
+
+                  {/* 3. Savories & Cafe Beverages */}
+                  <div className="flex flex-col gap-1 pl-1 pt-1 border-t border-brand-border/30 dark:border-brand-gold/10">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-brand-chocolate/70 dark:text-brand-cream/70">
+                      Savories &amp; Beverages
+                    </span>
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      <Link
+                        href="/categories/pizza"
+                        onClick={onClose}
+                        className="px-2 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-brand-gold/15"
+                      >
+                        🍕 Pizza
+                      </Link>
+                      <Link
+                        href="/categories/burgers"
+                        onClick={onClose}
+                        className="px-2 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-brand-gold/15"
+                      >
+                        🍔 Burgers
+                      </Link>
+                      <Link
+                        href="/categories/sandwiches"
+                        onClick={onClose}
+                        className="px-2 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-brand-gold/15"
+                      >
+                        🥪 Sandwiches
+                      </Link>
+                      <Link
+                        href="/categories/patties-snacks"
+                        onClick={onClose}
+                        className="px-2 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-brand-gold/15"
+                      >
+                        🥟 Patties
+                      </Link>
+                      <Link
+                        href="/categories/hot-beverages"
+                        onClick={onClose}
+                        className="px-2 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-brand-gold/15"
+                      >
+                        ☕ Hot Sips
+                      </Link>
+                      <Link
+                        href="/categories/cold-beverages"
+                        onClick={onClose}
+                        className="px-2 py-1 rounded-lg text-brand-chocolate/85 dark:text-brand-cream/85 hover:bg-brand-gold/15"
+                      >
+                        🥤 Cold Shakes
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Explore All Link */}
+                  <div className="pt-2 border-t border-brand-border/30 dark:border-brand-gold/10 text-right">
+                    <Link
+                      href="/categories"
+                      onClick={onClose}
+                      className="text-xs font-bold text-brand-crimson dark:text-brand-gold hover:underline"
+                    >
+                      Explore All Categories Hub →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Design My Cake */}
             <button

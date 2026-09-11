@@ -53,12 +53,14 @@ export function SignatureSection() {
   const tabsRef = useRef<HTMLDivElement>(null);
   const reassuranceRef = useRef<HTMLDivElement>(null);
 
-  // Synchronous catalog fetch
-  const allProducts = catalogService.getProductsSync();
+  // Synchronous catalog fetch - strictly cakes only for the Signature Cakes section
+  const allProducts = catalogService.getProductsSync().filter(
+    (p) => p.categoryId === "pre-made-cakes" || p.categoryId === "celebration-cakes"
+  );
   const baseFilteredProducts =
     activeFilter === "all"
       ? allProducts
-      : catalogService.getProductsSync({ occasion: activeFilter });
+      : allProducts.filter((p) => p.occasions.includes(activeFilter));
 
   // Shuffle products dynamically on tab clicks so catalog feels lively and distinct
   const displayedProducts = useMemo(() => {

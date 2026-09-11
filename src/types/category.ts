@@ -48,6 +48,8 @@ export interface Subcategory {
   image?: CatalogImage | string;
 }
 
+export type CategoryHierarchy = "hero" | "primary" | "supporting";
+
 /**
  * Core Category model prepared for relational database schema (PostgreSQL/Supabase).
  */
@@ -60,6 +62,9 @@ export interface Category {
   itemCountDescription: string;
   image: CatalogImage | string;
   badge?: string;
+  badgeVariant?: "gold" | "crimson" | "default";
+  hierarchy?: CategoryHierarchy; // "hero" for Cakes, "primary" for Pastries, "supporting" for Pizza/Burgers/etc.
+  routeHref?: string; // Dedicated page route e.g. /categories/pre-made-cakes
   isFeatured?: boolean;
   sortOrder: number;
   isActive: boolean;
