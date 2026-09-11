@@ -97,7 +97,7 @@ export const HeroProductStage = forwardRef<HTMLDivElement, HeroProductStageProps
     return (
       <div
         ref={ref}
-        className={`hero-product-stage relative w-full h-full select-none ${className}`}
+        className={`hero-product-stage relative w-full h-full select-none -translate-y-28 sm:translate-y-0 ${className}`}
         data-component="hero-product-stage"
         data-product-scene-boundary
       >

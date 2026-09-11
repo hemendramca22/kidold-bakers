@@ -270,7 +270,17 @@ export function CakeReferenceSection({
                   <span>✓</span> Reference selected for WhatsApp brief
                 </p>
 
-                <div className="flex items-center justify-center sm:justify-start gap-2 pt-2">
+                {/* Explicit Manual Photo Attachment Note */}
+                <div className="p-2.5 rounded-xl bg-brand-gold/15 dark:bg-brand-gold/20 border border-brand-gold/50 text-[11px] text-brand-chocolate dark:text-brand-cream text-left leading-relaxed flex items-start gap-2">
+                  <svg className="w-4 h-4 text-brand-gold shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>
+                    <strong>Note:</strong> Your cake details will be sent as text. Please attach this reference photo manually in the WhatsApp chat.
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
                   <button
                     type="button"
                     onClick={handleTriggerUpload}
@@ -307,7 +317,7 @@ export function CakeReferenceSection({
             <p className="flex items-start gap-1.5">
               <span className="text-brand-crimson dark:text-brand-crimson-light shrink-0">💬</span>
               <span>
-                <strong>WhatsApp Ordering:</strong> Your cake preferences will be prepared for WhatsApp. You can attach this reference image directly in WhatsApp before sending.
+                <strong>WhatsApp Ordering:</strong> Your cake details will be sent as text. Please attach this reference photo manually in the WhatsApp chat.
               </span>
             </p>
           </div>

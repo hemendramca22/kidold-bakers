@@ -23,12 +23,15 @@ export function getWhatsAppInquiryUrl(params?: {
   categoryName?: string;
   isCustomCake?: boolean;
   customCake?: CustomCakeBrief;
+  customMessage?: string;
 }): string {
   const number = businessData.whatsappNumber;
   const productName = params?.cakeName || params?.productName;
   let text = `Hello KidOld Bakers! 👋\n\n`;
 
-  if (params?.customCake) {
+  if (params?.customMessage) {
+    text = params.customMessage;
+  } else if (params?.customCake) {
     const {
       sponge,
       filling,
@@ -49,9 +52,9 @@ export function getWhatsAppInquiryUrl(params?: {
     text += `*Cake Message:*\n${customNote && customNote.trim() ? `"${customNote.trim()}"` : "None specified"}\n\n`;
 
     if (hasReferenceImage) {
-      text += `*Reference Image:*\nCustomer has selected a reference image${referenceImageName ? ` (${referenceImageName})` : ""}. (I will attach the image to this chat)\n\n`;
+      text += `*Reference Photo:*\nCustomer has selected a reference photo${referenceImageName ? ` (${referenceImageName})` : ""}. (Photo will be attached manually in this WhatsApp chat)\n\n`;
     } else {
-      text += `*Reference Image:*\nNo reference image\n\n`;
+      text += `*Reference Photo:*\nNo reference photo\n\n`;
     }
 
     if (aiConceptPrompt || aiConceptUrl) {

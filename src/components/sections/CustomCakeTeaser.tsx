@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge, VegIndicator } from "@/components/ui/Badge";
 import { WhatsAppIcon, CakeStudioIcon, HeartSparkleIcon } from "@/components/icons";
 import { getWhatsAppInquiryUrl, CustomCakeBrief } from "@/lib/whatsapp";
+import { businessData } from "@/data/business";
 import {
   CakeReferenceSection,
   CakeReferenceData,
@@ -46,6 +47,7 @@ export const WEIGHT_OPTIONS = [
   { label: "1.0kg (Approx 8–12 Servings)", value: "1kg (Approx 8–12 servings)" },
   { label: "1.5kg (Approx 12–16 Servings)", value: "1.5kg (Approx 12–16 servings)" },
   { label: "2.0kg+ (Grand Celebration / Tiered)", value: "2kg+ (Multi-tier or party size)" },
+  { label: "Custom Weight (Specify exact size)", value: "custom" },
 ];
 
 export function CustomCakeTeaser() {
@@ -55,6 +57,7 @@ export function CustomCakeTeaser() {
   const [selectedFillingId, setSelectedFillingId] = useState<string>(FILLING_OPTIONS[0].id);
   const [selectedThemeId, setSelectedThemeId] = useState<string>(THEME_OPTIONS[0].id);
   const [selectedWeight, setSelectedWeight] = useState<string>(WEIGHT_OPTIONS[1].value);
+  const [customWeightValue, setCustomWeightValue] = useState<string>("");
   const [customNote, setCustomNote] = useState<string>("");
   const [referenceData, setReferenceData] = useState<CakeReferenceData | null>(null);
   const [isReferenceReady, setIsReferenceReady] = useState<boolean>(false);
@@ -63,11 +66,15 @@ export function CustomCakeTeaser() {
   const selectedFilling = FILLING_OPTIONS.find((f) => f.id === selectedFillingId) || FILLING_OPTIONS[0];
   const selectedTheme = THEME_OPTIONS.find((t) => t.id === selectedThemeId) || THEME_OPTIONS[0];
 
+  const resolvedWeight = selectedWeight === "custom"
+    ? (customWeightValue.trim() ? `${customWeightValue.trim()} (Custom Weight)` : "Custom Weight (Customer to confirm)")
+    : selectedWeight;
+
   const cakeBrief: CustomCakeBrief = {
     sponge: selectedSponge.name,
     filling: selectedFilling.name,
     theme: selectedTheme.name,
-    weight: selectedWeight,
+    weight: resolvedWeight,
     dietary: "100% Pure Vegetarian / Eggless",
     customNote: customNote,
     hasReferenceImage: Boolean(referenceData),
@@ -76,6 +83,29 @@ export function CustomCakeTeaser() {
   };
 
   const whatsappUrl = getWhatsAppInquiryUrl({ customCake: cakeBrief });
+
+  const handleChefHelp = (type: "whatsapp" | "call") => {
+    if (type === "whatsapp") {
+      const chefUrl = getWhatsAppInquiryUrl({
+        customMessage: "Hello KidOld Bakers! 👋 I am in the middle of designing a custom cake and would love some direct guidance from your chef.",
+      });
+      window.open(chefUrl, "_blank", "noopener,noreferrer");
+    } else {
+      window.location.href = `tel:${businessData.phoneRaw}`;
+    }
+
+    // Treat session as finished: reset form to initial state & return to step 1/4
+    setCurrentStep(1);
+    setMaxCompletedStep(1);
+    setSelectedSpongeId(SPONGE_OPTIONS[0].id);
+    setSelectedFillingId(FILLING_OPTIONS[0].id);
+    setSelectedThemeId(THEME_OPTIONS[0].id);
+    setSelectedWeight(WEIGHT_OPTIONS[1].value);
+    setCustomWeightValue("");
+    setCustomNote("");
+    setReferenceData(null);
+    setIsReferenceReady(false);
+  };
 
   const STEPS = [
     { num: 1, title: "Sponge Base", subtitle: "Choose Foundation" },
@@ -549,6 +579,26 @@ export function CustomCakeTeaser() {
                       </option>
                     ))}
                   </select>
+
+                  {/* Custom Weight Text Field */}
+                  {selectedWeight === "custom" && (
+                    <div className="mt-2.5 space-y-1 text-left animate-in fade-in duration-200">
+                      <label
+                        htmlFor="custom-weight-input"
+                        className="text-[11px] font-bold text-brand-crimson dark:text-brand-gold uppercase tracking-wider block"
+                      >
+                        Specify Your Required Cake Weight:
+                      </label>
+                      <input
+                        id="custom-weight-input"
+                        type="text"
+                        placeholder="e.g. 2.5kg, 3kg 2-tier, or 750g"
+                        value={customWeightValue}
+                        onChange={(e) => setCustomWeightValue(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1E0F0A] border border-brand-gold/70 text-xs sm:text-sm text-brand-chocolate dark:text-brand-cream placeholder:text-brand-chocolate/40 dark:placeholder:text-brand-cream/40 focus:outline-none focus:ring-2 focus:ring-brand-gold shadow-2xs"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -581,7 +631,7 @@ export function CustomCakeTeaser() {
                     <span>Confirm With Our Bakery Team</span>
                   </div>
                   <p className="text-xs text-brand-cream/80 max-w-md leading-relaxed">
-                    Custom cakes are baked fresh at our Line Bazaar counter. 24–48 hours advance notice recommended. Exact pricing, feasibility, and final delivery details will be confirmed directly on WhatsApp.
+                    Custom cakes are baked fresh at our Line Bazaar counter. Your cake details will be sent as text. Please attach your reference photo manually in the WhatsApp chat.
                   </p>
                 </div>
 
@@ -629,12 +679,15 @@ export function CustomCakeTeaser() {
                   onClick={(e) => {
                     e.preventDefault();
                     setCurrentStep(1);
+                    setMaxCompletedStep(1);
                     setSelectedSpongeId(SPONGE_OPTIONS[0].id);
                     setSelectedFillingId(FILLING_OPTIONS[0].id);
                     setSelectedThemeId(THEME_OPTIONS[0].id);
                     setSelectedWeight(WEIGHT_OPTIONS[1].value);
+                    setCustomWeightValue("");
                     setCustomNote("");
                     setReferenceData(null);
+                    setIsReferenceReady(false);
                   }}
                   className="text-xs text-brand-chocolate-light dark:text-brand-gold/75 hover:text-brand-crimson dark:hover:text-brand-gold underline transition-colors cursor-pointer"
                 >
@@ -643,6 +696,44 @@ export function CustomCakeTeaser() {
               </div>
             </Card>
           )}
+
+          {/* Confused? Talk to our chef Help Option */}
+          <div className="rounded-2xl p-4 sm:p-5 bg-white/95 dark:bg-[#1C0E08]/95 border border-brand-gold/35 dark:border-brand-gold/25 shadow-tactile flex flex-col sm:flex-row items-center justify-between gap-3.5 transition-colors">
+            <div className="flex items-center gap-3 text-center sm:text-left">
+              <div className="w-10 h-10 rounded-xl bg-brand-gold/15 dark:bg-brand-gold/25 border border-brand-gold/30 flex items-center justify-center shrink-0 shadow-2xs">
+                <CakeStudioIcon className="w-5 h-5 text-brand-chocolate dark:text-brand-gold" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold font-serif text-brand-chocolate dark:text-brand-cream">
+                  Confused? Talk to our chef
+                </h4>
+                <p className="text-xs text-brand-chocolate/75 dark:text-brand-cream/70 mt-0.5">
+                  Need help choosing flavors, custom weights, or occasion themes? Get instant guidance from our head baker.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => handleChefHelp("whatsapp")}
+                className="btn-3d-tactile flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold bg-[#25D366]/15 hover:bg-[#25D366]/25 dark:bg-[#25D366]/20 dark:hover:bg-[#25D366]/30 text-emerald-800 dark:text-emerald-300 border border-emerald-500/40 flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              >
+                <WhatsAppIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>WhatsApp</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChefHelp("call")}
+                className="btn-3d-tactile flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold bg-brand-chocolate/10 hover:bg-brand-chocolate/15 dark:bg-brand-gold/15 dark:hover:bg-brand-gold/25 text-brand-chocolate dark:text-brand-gold border border-brand-border dark:border-brand-gold/30 flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                <span>Call</span>
+              </button>
+            </div>
+          </div>
         </div>
       </Container>
     </section>
