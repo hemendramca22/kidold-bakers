@@ -5,6 +5,8 @@ import * as THREE from "three";
 import { Canvas, useFrame, useThree, useLoader } from "@react-three/fiber";
 import { ContactShadows } from "@react-three/drei";
 import { HeroCakeMesh } from "./HeroCakeMesh";
+import { KidsCakeMesh } from "./KidsCakeMesh";
+import { AnniversaryCakeMesh } from "./AnniversaryCakeMesh";
 
 // Pre-warm the logo texture so HeroCakeMesh renders without suspension delay
 if (typeof window !== "undefined") {
@@ -16,6 +18,7 @@ if (typeof window !== "undefined") {
 export interface HeroCakeSceneProps {
   scrollProgress?: number | React.RefObject<number> | { current: number }; // 0 to 1
   className?: string;
+  activeCakeIndex?: number;
 }
 
 function getProgress(val: number | React.RefObject<number> | { current: number } | undefined): number {
@@ -211,12 +214,102 @@ function isWebGLAvailable(): boolean {
 }
 
 /**
+ * CakeCarouselSwapper
+ * Manages smooth cross-fade / scale transitions between the 3 hero cakes.
+ * Keeps GPU memory optimal by setting visible=false when scale < 0.005.
+ */
+function CakeCarouselSwapper({
+  activeCakeIndex = 0,
+  scrollProgress,
+  touchRotation,
+}: {
+  activeCakeIndex: number;
+  scrollProgress?: number | React.RefObject<number> | { current: number };
+  touchRotation?: number | React.RefObject<number> | { current: number };
+}) {
+  const group1 = useRef<THREE.Group>(null);
+  const group2 = useRef<THREE.Group>(null);
+  const group3 = useRef<THREE.Group>(null);
+
+  const scale1 = useRef(activeCakeIndex === 0 ? 1 : 0);
+  const scale2 = useRef(activeCakeIndex === 1 ? 1 : 0);
+  const scale3 = useRef(activeCakeIndex === 2 ? 1 : 0);
+
+  const [renderedCakes, setRenderedCakes] = useState<Record<number, boolean>>({
+    0: true,
+    1: activeCakeIndex === 1,
+    2: activeCakeIndex === 2,
+  });
+
+  useEffect(() => {
+    setRenderedCakes((prev) => ({ ...prev, [activeCakeIndex]: true }));
+  }, [activeCakeIndex]);
+
+  useFrame((_, delta) => {
+    const target1 = activeCakeIndex === 0 ? 1 : 0;
+    const target2 = activeCakeIndex === 1 ? 1 : 0;
+    const target3 = activeCakeIndex === 2 ? 1 : 0;
+
+    scale1.current = THREE.MathUtils.damp(scale1.current, target1, 9.0, delta);
+    scale2.current = THREE.MathUtils.damp(scale2.current, target2, 9.0, delta);
+    scale3.current = THREE.MathUtils.damp(scale3.current, target3, 9.0, delta);
+
+    if (group1.current) {
+      group1.current.scale.setScalar(scale1.current);
+      group1.current.visible = scale1.current > 0.005;
+      group1.current.position.y = (1 - scale1.current) * -0.22;
+    }
+    if (group2.current) {
+      group2.current.scale.setScalar(scale2.current);
+      group2.current.visible = scale2.current > 0.005;
+      group2.current.position.y = (1 - scale2.current) * -0.22;
+    }
+    if (group3.current) {
+      group3.current.scale.setScalar(scale3.current);
+      group3.current.visible = scale3.current > 0.005;
+      group3.current.position.y = (1 - scale3.current) * -0.22;
+    }
+  });
+
+  return (
+    <>
+      <group ref={group1}>
+        <HeroCakeMesh
+          scrollProgress={scrollProgress}
+          touchRotation={touchRotation}
+        />
+      </group>
+      {renderedCakes[1] && (
+        <group ref={group2}>
+          <KidsCakeMesh
+            scrollProgress={scrollProgress}
+            touchRotation={touchRotation}
+          />
+        </group>
+      )}
+      {renderedCakes[2] && (
+        <group ref={group3}>
+          <AnniversaryCakeMesh
+            scrollProgress={scrollProgress}
+            touchRotation={touchRotation}
+          />
+        </group>
+      )}
+    </>
+  );
+}
+
+/**
  * HeroCakeScene
  *
  * Dedicated R3F component boundary for the flagship 3D hero celebration cake.
  * Renders studio lighting, soft turntable shadows, and the scrubbed 3D model.
  */
-export function HeroCakeScene({ scrollProgress = 0, className = "" }: HeroCakeSceneProps) {
+export function HeroCakeScene({
+  scrollProgress = 0,
+  className = "",
+  activeCakeIndex = 0,
+}: HeroCakeSceneProps) {
   const [canRenderWebGL, setCanRenderWebGL] = useState(() => isWebGLAvailable());
   const touchRotationRef = useRef(0);
   const touchTRef = useRef(0.35);
@@ -400,7 +493,8 @@ export function HeroCakeScene({ scrollProgress = 0, className = "" }: HeroCakeSc
             touchT={touchTRef}
             isTouchActive={isTouchActiveRef}
           />
-          <HeroCakeMesh
+          <CakeCarouselSwapper
+            activeCakeIndex={activeCakeIndex}
             scrollProgress={scrollProgress}
             touchRotation={touchRotationRef}
           />

@@ -117,8 +117,8 @@ export function HeroSection() {
       >
       <HeroAtmosphere />
 
-      {/* Full-viewport 3D Cake Canvas Stage - only the centered cake-touch-zone receives touch on mobile */}
-      <div className="absolute inset-0 z-0 w-full h-full pointer-events-none [&_.cake-touch-zone]:pointer-events-auto">
+      {/* Full-viewport 3D Cake Canvas Stage - cake-touch-zone and carousel controls receive pointer events */}
+      <div className="absolute inset-0 z-0 w-full h-full pointer-events-none [&_.cake-touch-zone]:pointer-events-auto [&_.hero-carousel-control]:pointer-events-auto">
         <HeroProductStage ref={stageRef} scrollProgress={scrollProgressRef} />
       </div>
 
